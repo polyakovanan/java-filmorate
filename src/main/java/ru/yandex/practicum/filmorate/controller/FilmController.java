@@ -11,10 +11,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.utils.DataUtils;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -23,10 +20,10 @@ public class FilmController {
     private final Map<Long, Film> films = new HashMap<>();
 
     @GetMapping
-    public Collection<Film> findAll() {
+    public List<Film> findAll() {
         log.info("Запрос на получение всех фильмов");
         log.debug(films.toString());
-        return films.values();
+        return new ArrayList<>(films.values());
     }
 
     @PostMapping
