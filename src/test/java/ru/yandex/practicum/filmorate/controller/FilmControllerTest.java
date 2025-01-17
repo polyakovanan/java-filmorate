@@ -3,12 +3,17 @@ package ru.yandex.practicum.filmorate.controller;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.utils.DataUtils;
 
 import java.time.LocalDate;
@@ -17,14 +22,21 @@ import java.util.Collection;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest(classes = FilmController.class)
+@SpringBootTest(classes = {FilmController.class, FilmService.class, InMemoryFilmStorage.class, ApplicationContext.class})
 class FilmControllerTest {
 
+    @Autowired
     private FilmController filmController;
+
+    @Autowired
+    private FilmService filmService;
+
+    @Autowired
+    private FilmStorage filmStorage;
 
     @BeforeEach
     void init() {
-        filmController = new FilmController();
+        filmStorage.clear();
     }
 
     @Test
