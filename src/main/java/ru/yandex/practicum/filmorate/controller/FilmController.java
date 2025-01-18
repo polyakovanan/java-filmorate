@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -23,7 +24,19 @@ public class FilmController {
         return filmService.findAll();
     }
 
+    @GetMapping("/{id}")
+    public Optional<Film> findById(@PathVariable Long id) {
+        log.info("Запрос на получение фильма с id = {}", id);
+        return filmService.findById(id);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> findPopular(@RequestParam(defaultValue = "10") int count) {
+        return filmService.findPopular(count);
+    }
+
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Film create(@RequestBody
                        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                        @Valid  Film film) {
@@ -40,5 +53,17 @@ public class FilmController {
 
         log.info("Запрос на обновление фильма");
         return filmService.update(newFilm);
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable Long id, @PathVariable Long userId) {
+        log.info("Запрос на лайк фильма");
+        filmService.addLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void removeLike(@PathVariable Long id, @PathVariable Long userId) {
+        log.info("Запрос удаление лайка с фильма");
+        filmService.removeLike(id, userId);
     }
 }
