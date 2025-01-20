@@ -26,10 +26,10 @@ public class UserService {
         return userStorage.getAll();
     }
 
-    public Optional<User> findById(Long id) {
+    public User findById(Long id) {
         Optional<User> user = userStorage.getById(id);
         if (user.isPresent()) {
-            return user;
+            return user.get();
         }
         log.error(String.format(NOT_FOUND_MESSAGE, id));
         throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));

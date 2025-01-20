@@ -25,7 +25,7 @@ public class FilmController {
     }
 
     @GetMapping("/{id}")
-    public Optional<Film> findById(@PathVariable Long id) {
+    public Film findById(@PathVariable Long id) {
         log.info("Запрос на получение фильма с id = {}", id);
         return filmService.findById(id);
     }

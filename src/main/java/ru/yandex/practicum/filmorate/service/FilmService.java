@@ -31,10 +31,10 @@ public class FilmService {
         return filmStorage.getAll();
     }
 
-    public Optional<Film> findById(Long id) {
+    public Film findById(Long id) {
         Optional<Film> film = filmStorage.getById(id);
         if (film.isPresent()) {
-            return film;
+            return film.get();
         }
         log.error(String.format(NOT_FOUND_MESSAGE, id));
         throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));

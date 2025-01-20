@@ -24,7 +24,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public Optional<User> findById(@PathVariable Long id) {
+    public User findById(@PathVariable Long id) {
         log.info("Запрос на получение пользователя с id = {}", id);
         return userService.findById(id);
     }
