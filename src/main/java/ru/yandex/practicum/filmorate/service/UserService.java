@@ -58,21 +58,21 @@ public class UserService {
 
         if (userOptional.isPresent()) {
             validate(user);
-            User oldUser = userOptional.get();
-            oldUser.setLogin(user.getLogin());
-            oldUser.setEmail(user.getEmail());
-            oldUser.setBirthday(user.getBirthday());
-            oldUser.setName(user.getName());
+            User currentUser = userOptional.get();
+            currentUser.setLogin(user.getLogin());
+            currentUser.setEmail(user.getEmail());
+            currentUser.setBirthday(user.getBirthday());
+            currentUser.setName(user.getName());
             if (user.getName() == null || user.getName().isBlank()) {
-                oldUser.setName(user.getLogin());
+                currentUser.setName(user.getLogin());
             } else {
                 log.warn("Не указано имя пользователя. Приравниваем его к логину");
-                oldUser.setName(user.getName());
+                currentUser.setName(user.getName());
             }
 
             log.info("Пользователь обновлен");
-            log.debug(oldUser.toString());
-            return oldUser;
+            log.debug(currentUser.toString());
+            return currentUser;
         } else {
             log.error(String.format(NOT_FOUND_MESSAGE, user.getId()));
             throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, user.getId()));

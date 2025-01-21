@@ -58,13 +58,13 @@ public class FilmService {
 
         if (filmOptional.isPresent()) {
             validate(film);
-            Film oldFilm = filmOptional.get();
-            oldFilm.setName(film.getName());
-            oldFilm.setDescription(film.getDescription());
-            oldFilm.setReleaseDate(film.getReleaseDate());
-            oldFilm.setDuration(film.getDuration());
+            Film currentFilm = filmOptional.get();
+            currentFilm.setName(film.getName());
+            currentFilm.setDescription(film.getDescription());
+            currentFilm.setReleaseDate(film.getReleaseDate());
+            currentFilm.setDuration(film.getDuration());
             log.info("Фильм успешно обновлен");
-            return oldFilm;
+            return currentFilm;
         } else {
             log.error(String.format(NOT_FOUND_MESSAGE, film.getId()));
             throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, film.getId()));
