@@ -1,110 +1,70 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
-import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.*;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/users")
 public class UserController {
-    private final Map<Long, User> users = new HashMap<>();
+    private final UserService userService;
 
     @GetMapping
     public List<User> findAll() {
         log.info("Запрос на получение всех пользователей");
-        log.debug(users.toString());
-        return new ArrayList<>(users.values());
+        return userService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public User findById(@PathVariable Long id) {
+        log.info("Запрос на получение пользователя с id = {}", id);
+        return userService.findById(id);
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public User create(@RequestBody @Valid User user) {
         log.info("Запрос на создание пользователя");
         log.debug(user.toString());
-
-        validate(user);
-        if (user.getName() == null || user.getName().isBlank()) {
-            log.warn("Не указано имя пользователя. Приравниваем его к логину");
-            user.setName(user.getLogin());
-        }
-
-        user.setId(getNextId());
-        users.put(user.getId(), user);
-
-        log.info("Пользователь создан");
-        log.debug(user.toString());
-        return user;
+        return userService.create(user);
     }
 
     @PutMapping
     public User update(@RequestBody @Valid User newUser) {
         log.info("Запрос на обновление пользователя");
         log.debug(newUser.toString());
-
-        if (newUser.getId() == null) {
-            log.error("Не указан id пользователя");
-            throw new ConditionsNotMetException("Id должен быть указан");
-        }
-
-        validate(newUser);
-
-        if (users.containsKey(newUser.getId())) {
-            User oldUser = users.get(newUser.getId());
-            oldUser.setLogin(newUser.getLogin());
-            oldUser.setEmail(newUser.getEmail());
-            oldUser.setBirthday(newUser.getBirthday());
-            oldUser.setName(newUser.getName());
-            if (newUser.getName() == null || newUser.getName().isBlank()) {
-                oldUser.setName(newUser.getLogin());
-            } else {
-                log.warn("Не указано имя пользователя. Приравниваем его к логину");
-                oldUser.setName(newUser.getName());
-            }
-
-            log.info("Пользователь обновлен");
-            log.debug(oldUser.toString());
-            return oldUser;
-        }
-
-        log.error("Пользователь с id = {} не найден", newUser.getId());
-        throw new NotFoundException("Пользователь с id = " + newUser.getId() + " не найден");
+        return userService.update(newUser);
     }
 
-    private void validate(User user) throws DuplicatedDataException {
-        if (users.values()
-                .stream()
-                .anyMatch(u -> u.getEmail().equals(user.getEmail()) && !Objects.equals(u.getId(), user.getId()))) {
-            log.error("Email {} уже используется", user.getEmail());
-            throw new DuplicatedDataException("Этот email уже используется");
-        }
-
-        if (users.values()
-                .stream()
-                .anyMatch(u -> u.getLogin().equals(user.getLogin()) && !Objects.equals(u.getId(), user.getId()))) {
-            log.error("Логин {} уже используется", user.getLogin());
-            throw new DuplicatedDataException("Этот логин уже используется");
-        }
-
-        if (user.getLogin().contains(" ")) {
-            log.error("Логин {} уже содержит пробелы", user.getLogin());
-            throw new ValidationException("Логин не может содержать пробелы");
-        }
+    @GetMapping("/{id}/friends")
+    public List<User> findFriends(@PathVariable Long id) {
+        log.info("Запрос на получение друзей пользователя с id = {}", id);
+        return userService.findFriends(id);
     }
 
-    // вспомогательный метод для генерации идентификатора нового пользователя
-    private long getNextId() {
-        long currentMaxId = users.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> findCommonFriends(@PathVariable Long id, @PathVariable Long otherId) {
+        log.info("Запрос на получение списка общих друзей между пользователями с id = {} и id = {}", id, otherId);
+        return userService.findCommonFriends(id, otherId);
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        log.info("Запрос на добавление друга с id {} пользователю с id = {}", friendId, id);
+        userService.addFriend(id, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        log.info("Запрос на удаление друга с id {} у пользователя с id = {}", friendId, id);
+        userService.removeFriend(id, friendId);
     }
 }
