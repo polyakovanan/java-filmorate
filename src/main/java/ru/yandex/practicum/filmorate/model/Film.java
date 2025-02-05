@@ -25,6 +25,9 @@ public class Film {
 
     @Positive(message = "Длительность не может быть отрицательной")
     Integer duration;
+    Long MPARating;
+
+    final Set<Long> genres = new HashSet<>();
     final Set<Long> likes = new HashSet<>();
 
     public void addLike(Long userId) {

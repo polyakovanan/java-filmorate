@@ -7,7 +7,9 @@ import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Friendship;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.List;
@@ -21,6 +23,7 @@ import java.util.Set;
 public class UserService {
     static final String NOT_FOUND_MESSAGE = "Пользователь с id = %s не найден";
     final UserStorage userStorage;
+    final FriendshipStorage friendshipStorage;
 
     public List<User> findAll() {
         return userStorage.getAll();
@@ -82,7 +85,7 @@ public class UserService {
     public List<User> findFriends(Long id) {
         Optional<User> user = userStorage.getById(id);
         if (user.isPresent()) {
-            Set<Long> friends = user.get().getFriends();
+            Set<Long> friends = friendshipStorage.getFriendsByUserId(id);
             return userStorage.getAll().stream()
                     .filter(u -> friends.contains(u.getId()))
                     .toList();
@@ -97,9 +100,25 @@ public class UserService {
         if (user.isPresent()) {
             Optional<User> friend = userStorage.getById(friendId);
             if (friend.isPresent()) {
-                user.get().addFriend(friendId);
-                friend.get().addFriend(id);
+                friendshipStorage.create(id, friendId);
                 log.info("Пользователь с id = {} добавил друга с id = {}", id, friendId);
+            } else {
+                log.error(String.format(NOT_FOUND_MESSAGE, friendId));
+                throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, friendId));
+            }
+        } else {
+            log.error(String.format(NOT_FOUND_MESSAGE, id));
+            throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
+        }
+    }
+
+    public void acceptFriend(Long id, Long friendId) {
+        Optional<User> user = userStorage.getById(id);
+        if (user.isPresent()) {
+            Optional<User> friend = userStorage.getById(friendId);
+            if (friend.isPresent()) {
+                friendshipStorage.accept(id, friendId);
+                log.info("Пользователь с id = {} одобрил заявку друга с id = {}", id, friendId);
             } else {
                 log.error(String.format(NOT_FOUND_MESSAGE, friendId));
                 throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, friendId));
@@ -115,8 +134,7 @@ public class UserService {
         if (user.isPresent()) {
             Optional<User> friend = userStorage.getById(friendId);
             if (friend.isPresent()) {
-                user.get().removeFriend(friendId);
-                friend.get().removeFriend(id);
+                friendshipStorage.remove(id, friendId);
                 log.info("Пользователь с id = {} удалил друга с id = {}", id, friendId);
             } else {
                 log.error(String.format(NOT_FOUND_MESSAGE, friendId));
@@ -133,8 +151,8 @@ public class UserService {
         if (user.isPresent()) {
             Optional<User> otherUser = userStorage.getById(otherId);
             if (otherUser.isPresent()) {
-                Set<Long> friends = user.get().getFriends();
-                Set<Long> otherFriends = otherUser.get().getFriends();
+                Set<Long> friends = friendshipStorage.getFriendsByUserId(id);
+                Set<Long> otherFriends = friendshipStorage.getFriendsByUserId(otherId);
                 List<Long> intersect = friends.stream()
                         .filter(otherFriends::contains)
                         .toList();
@@ -173,4 +191,5 @@ public class UserService {
             throw new ValidationException("login", "Логин не может содержать пробелы");
         }
     }
+
 }

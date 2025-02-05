@@ -12,6 +12,8 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
+import ru.yandex.practicum.filmorate.storage.friendship.InMemoryFriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -22,7 +24,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest(classes = {UserController.class, UserService.class, InMemoryUserStorage.class, ApplicationContext.class})
+@SpringBootTest(classes = {UserController.class, UserService.class, InMemoryUserStorage.class, InMemoryFriendshipStorage.class, ApplicationContext.class})
 class UserControllerTest {
 
     @Autowired
@@ -34,9 +36,13 @@ class UserControllerTest {
     @Autowired
     private UserStorage userStorage;
 
+    @Autowired
+    private FriendshipStorage friendshipStorage;
+
     @BeforeEach
     void init() {
         userStorage.clear();
+        friendshipStorage.clear();
     }
 
     @Test
@@ -236,6 +242,7 @@ class UserControllerTest {
         userController.create(user);
 
         userController.addFriend(1L, 2L);
+        userController.acceptFriend(2L, 1L);
         List<User> friends = userController.findFriends(1L);
         Assertions.assertEquals(1, friends.size(), "Контроллер не добавил пользователя в друзья");
         Assertions.assertEquals("test2", friends.get(0).getLogin(), "Контроллер не добавил пользователя в друзья");
@@ -298,6 +305,7 @@ class UserControllerTest {
         userController.create(user);
 
         userController.addFriend(1L, 2L);
+        userController.acceptFriend(2L, 1L);
         List<User> friends = userController.findFriends(1L);
         Assertions.assertEquals(1, friends.size(), "Контроллер не добавил пользователя в друзья");
         Assertions.assertEquals("test2", friends.get(0).getLogin(), "Контроллер не добавил пользователя в друзья");
@@ -386,7 +394,9 @@ class UserControllerTest {
         userController.create(user);
 
         userController.addFriend(1L, 3L);
+        userController.acceptFriend(3L, 1L);
         userController.addFriend(2L, 3L);
+        userController.acceptFriend(3L, 2L);
         List<User> friends = userController.findCommonFriends(1L, 2L);
         Assertions.assertEquals(1, friends.size(), "Контроллер не нашел общих друзей");
         Assertions.assertEquals("test3", friends.get(0).getLogin(), "Контроллер неправильно нашел общих друзей");
