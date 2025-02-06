@@ -18,6 +18,8 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.friendship.InMemoryFriendshipStorage;
+import ru.yandex.practicum.filmorate.storage.genre.InMemoryGenreStorage;
+import ru.yandex.practicum.filmorate.storage.mparating.InMemoryMPARatingStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.utils.DataUtils;
@@ -29,7 +31,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest(classes = {FilmController.class, UserController.class, FilmService.class, UserService.class, InMemoryFilmStorage.class, InMemoryUserStorage.class, InMemoryFriendshipStorage.class, ApplicationContext.class})
+@SpringBootTest(classes = {FilmController.class, UserController.class, FilmService.class, UserService.class, InMemoryFilmStorage.class, InMemoryUserStorage.class, InMemoryFriendshipStorage.class, InMemoryGenreStorage.class, InMemoryMPARatingStorage.class, ApplicationContext.class})
 class FilmControllerTest {
 
     @Autowired

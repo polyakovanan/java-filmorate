@@ -21,8 +21,8 @@ public class InMemoryFriendshipStorage implements FriendshipStorage {
         Optional<Friendship> friendshipOp = friendships.stream()
                 .filter(f -> f.getUserId() == userId && f.getFriendId() == friendId)
                 .findFirst();
-        if ((friendshipOp.isEmpty())){
-            friendships.add(new Friendship(userId, friendId, true));
+        if ((friendshipOp.isEmpty())) {
+            friendships.add(new Friendship(userId, friendId, false));
             friendships.add(new Friendship(friendId, userId, false));
         }
     }
@@ -31,6 +31,14 @@ public class InMemoryFriendshipStorage implements FriendshipStorage {
     public void accept(long userId, long friendId) {
         Optional<Friendship> friendshipOp = friendships.stream()
                 .filter(f -> f.getUserId() == userId && f.getFriendId() == friendId)
+                .findFirst();
+        if (friendshipOp.isPresent()) {
+            Friendship friendship = friendshipOp.get();
+            friendship.setAccepted(true);
+        }
+
+        friendshipOp = friendships.stream()
+                .filter(f -> f.getUserId() == friendId && f.getFriendId() == userId)
                 .findFirst();
         if (friendshipOp.isPresent()) {
             Friendship friendship = friendshipOp.get();
