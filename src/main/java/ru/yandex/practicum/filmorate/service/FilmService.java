@@ -8,15 +8,15 @@ import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.MPARating;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.mparating.MPARatingStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.utils.DataUtils;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -26,6 +26,8 @@ public class FilmService {
     static final String NOT_FOUND_MESSAGE = "Фильм с id = %s не найден";
     final FilmStorage filmStorage;
     final UserStorage userStorage;
+    final MPARatingStorage mpaRatingStorage;
+    final GenreStorage genreStorage;
 
     public List<Film> findAll() {
         return filmStorage.getAll();
@@ -119,6 +121,24 @@ public class FilmService {
             log.error("Дата релиза раньше {}", Film.CINEMA_BIRTH_DAY.format(DataUtils.DATE_FORMATTER));
             throw new ValidationException("releaseDate", "Дата релиза не может быть раньше " +
                     Film.CINEMA_BIRTH_DAY.format(DataUtils.DATE_FORMATTER));
+        }
+
+        if (film.getMapRating() != null) {
+            Optional<MPARating> rating = mpaRatingStorage.getById(film.getMapRating());
+            if (rating.isEmpty()) {
+                log.error("Рейтинг с id = {} не найден", film.getMapRating());
+                throw new NotFoundException("Рейтинг с id = " + film.getMapRating() + " не найден");
+            }
+        }
+
+        if (!film.getGenres().isEmpty()) {
+            List<Long> absentGenres = film.getGenres().stream()
+                    .filter(g -> genreStorage.getById(g).isEmpty())
+                    .toList();
+            if (!absentGenres.isEmpty()) {
+                log.error("Фильм содержит жанры, которых нет в базе c id = {}", absentGenres);
+                throw new NotFoundException("Фильм содержит жанры, которых нет в базе c id = " + absentGenres);
+            }
         }
     }
 

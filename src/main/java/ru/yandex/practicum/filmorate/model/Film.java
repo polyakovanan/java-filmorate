@@ -25,7 +25,7 @@ public class Film {
 
     @Positive(message = "Длительность не может быть отрицательной")
     Integer duration;
-    Long MPARating;
+    Long mapRating;
 
     final Set<Long> genres = new HashSet<>();
     final Set<Long> likes = new HashSet<>();
