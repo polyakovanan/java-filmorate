@@ -7,6 +7,7 @@ Table films {
   description varchar(255)
   release_date date
   duration integer
+  mpa_rating integer
 }
 
 Table users {
@@ -43,10 +44,6 @@ Table mpa_ratings {
   name varchar(50)
 }
 
-Table film_mpa_ratings {
-  film_id integer [primary key]
-  mpa_rating_id integer [primary key]
-}
 
 Ref: likes.user_id > users.id // many-to-one
 
@@ -60,6 +57,4 @@ Ref: film_genres.genre_id > genres.id
 
 Ref: film_genres.film_id > films.id
 
-Ref: film_mpa_ratings.mpa_rating_id > mpa_ratings.id
-
-Ref: film_mpa_ratings.film_id - films.id
+Ref: mpa_ratings.id < films.mpa_rating
