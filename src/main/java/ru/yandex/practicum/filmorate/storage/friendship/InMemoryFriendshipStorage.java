@@ -6,7 +6,7 @@ import ru.yandex.practicum.filmorate.model.Friendship;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Component
+@Component("inMemoryFriendshipStorage")
 public class InMemoryFriendshipStorage implements FriendshipStorage {
     private final Set<Friendship> friendships = new HashSet<>();
 

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Component
+@Component("inMemoryGenreStorage")
 public class InMemoryGenreStorage implements GenreStorage {
     Map<Long, Genre> genres = new HashMap<>();
 
