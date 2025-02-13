@@ -12,5 +12,7 @@ public interface FilmStorage {
 
     Film create(Film user);
 
+    Film update(Film user);
+
     void clear();
 }

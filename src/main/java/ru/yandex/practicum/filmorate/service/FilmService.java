@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.model.MPARating;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.likes.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.mparating.MPARatingStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.utils.DataUtils;
@@ -28,6 +29,7 @@ public class FilmService {
     final UserStorage userStorage;
     final MPARatingStorage mpaRatingStorage;
     final GenreStorage genreStorage;
+    final LikeStorage likeStorage;
 
     public List<Film> findAll() {
         return filmStorage.getAll();
@@ -78,7 +80,7 @@ public class FilmService {
         if (film.isPresent()) {
             Optional<User> user = userStorage.getById(userId);
             if (user.isPresent()) {
-                film.get().addLike(userId);
+                likeStorage.create(userId, id);
                 log.info("Пользователь с id = {} поставил лайк фильму с id = {}", userId, id);
             } else {
                 log.error("Пользователь с id = {} не найден", userId);
@@ -95,7 +97,7 @@ public class FilmService {
         if (film.isPresent()) {
             Optional<User> user = userStorage.getById(userId);
             if (user.isPresent()) {
-                film.get().removeLike(userId);
+                likeStorage.remove(userId, id);
                 log.info("Пользователь с id = {} убрал лайк с фильма с id = {}", userId, id);
             } else {
                 log.error("Пользователь с id = {} не найден", userId);
@@ -123,11 +125,11 @@ public class FilmService {
                     Film.CINEMA_BIRTH_DAY.format(DataUtils.DATE_FORMATTER));
         }
 
-        if (film.getMapRating() != null) {
-            Optional<MPARating> rating = mpaRatingStorage.getById(film.getMapRating());
+        if (film.getMpaRating() != null) {
+            Optional<MPARating> rating = mpaRatingStorage.getById(film.getMpaRating());
             if (rating.isEmpty()) {
-                log.error("Рейтинг с id = {} не найден", film.getMapRating());
-                throw new NotFoundException("Рейтинг с id = " + film.getMapRating() + " не найден");
+                log.error("Рейтинг с id = {} не найден", film.getMpaRating());
+                throw new NotFoundException("Рейтинг с id = " + film.getMpaRating() + " не найден");
             }
         }
 
@@ -143,9 +145,12 @@ public class FilmService {
     }
 
     public List<Film> findPopular(int count) {
-        return filmStorage.getAll().stream()
-                .sorted(Comparator.comparing(Film::getLikeCount).reversed())
-                .limit(count)
-                .toList();
+        Set<Long> filmIds = likeStorage.getPopularFilms(count);
+        List<Film> films = new ArrayList<>();
+        filmIds.forEach(id -> {
+            Optional<Film> film = filmStorage.getById(id);
+            film.ifPresent(films::add);
+        });
+        return films;
     }
 }

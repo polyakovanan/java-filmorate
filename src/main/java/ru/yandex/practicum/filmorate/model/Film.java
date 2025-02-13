@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -11,6 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
+@Builder
 public class Film {
     public static final LocalDate CINEMA_BIRTH_DAY = LocalDate.of(1895, 12, 28);
 
@@ -25,20 +27,7 @@ public class Film {
 
     @Positive(message = "Длительность не может быть отрицательной")
     Integer duration;
-    Long mapRating;
+    Long mpaRating;
 
-    final Set<Long> genres = new HashSet<>();
-    final Set<Long> likes = new HashSet<>();
-
-    public void addLike(Long userId) {
-        likes.add(userId);
-    }
-
-    public void removeLike(Long userId) {
-        likes.remove(userId);
-    }
-
-    public int getLikeCount() {
-        return likes.size();
-    }
+    Set<Long> genres = new HashSet<>();
 }

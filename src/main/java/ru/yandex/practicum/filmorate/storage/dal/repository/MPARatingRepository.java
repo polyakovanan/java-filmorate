@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.dal;
+package ru.yandex.practicum.filmorate.storage.dal.repository;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -21,8 +21,8 @@ public class MPARatingRepository extends BaseRepository<MPARating> {
         return findMany(FIND_ALL_QUERY);
     }
 
-    public Optional<MPARating> findById(long genreId) {
-        return findOne(FIND_BY_ID_QUERY, genreId);
+    public Optional<MPARating> findById(long ratingId) {
+        return findOne(FIND_BY_ID_QUERY, ratingId);
     }
 
 }

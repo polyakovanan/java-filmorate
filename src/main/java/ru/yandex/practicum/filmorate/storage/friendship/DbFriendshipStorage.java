@@ -1,10 +1,12 @@
 package ru.yandex.practicum.filmorate.storage.friendship;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 @Component("dbFriendshipStorage")
+@Primary
 public class DbFriendshipStorage implements FriendshipStorage{
     @Override
     public Set<Long> getFriendsByUserId(long id) {
@@ -28,6 +30,6 @@ public class DbFriendshipStorage implements FriendshipStorage{
 
     @Override
     public void clear() {
-
+        throw new UnsupportedOperationException("Очистка таблицы БД не поддерживается");
     }
 }

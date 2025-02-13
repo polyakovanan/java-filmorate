@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 @Builder
-public class MPARating {
-    Long id;
-    String name;
+public class Like {
+    Long userId;
+    Long filmId;
 }

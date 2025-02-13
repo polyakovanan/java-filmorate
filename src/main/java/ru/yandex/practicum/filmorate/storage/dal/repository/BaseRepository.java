@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.dal;
+package ru.yandex.practicum.filmorate.storage.dal.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -30,8 +30,13 @@ public class BaseRepository<T> {
         return jdbc.query(query, mapper, params);
     }
 
-    protected boolean delete(String query, long id) {
+    protected boolean deleteById(String query, long id) {
         int rowsDeleted = jdbc.update(query, id);
+        return rowsDeleted > 0;
+    }
+
+    protected boolean delete(String query, Object... params) {
+        int rowsDeleted = jdbc.update(query, params);
         return rowsDeleted > 0;
     }
 
@@ -42,7 +47,14 @@ public class BaseRepository<T> {
         }
     }
 
-    protected long insert(String query, Object... params) {
+    protected void insert(String query, Object... params) {
+        int rowsUpdated = jdbc.update(query, params);
+        if (rowsUpdated == 0) {
+            throw new InternalServerException("Не удалось создать данные");
+        }
+    }
+
+    protected long insertWithGeneratedId(String query, Object... params) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
             PreparedStatement ps = connection
@@ -60,4 +72,5 @@ public class BaseRepository<T> {
             throw new InternalServerException("Не удалось сохранить данные");
         }
     }
+
 }
