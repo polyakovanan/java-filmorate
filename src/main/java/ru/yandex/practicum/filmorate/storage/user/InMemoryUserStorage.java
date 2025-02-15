@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.friendship.InMemoryFriendshipStorage;
@@ -45,7 +46,7 @@ public class InMemoryUserStorage implements UserStorage {
                 .findAll()
                 .stream()
                 .filter(friendship -> friendship.getUserId() == id)
-                .map(friendship -> getById(friendship.getUserId()))
+                .map(friendship -> getById(friendship.getFriendId()))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .toList();

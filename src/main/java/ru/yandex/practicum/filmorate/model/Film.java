@@ -31,5 +31,5 @@ public class Film {
     Integer duration;
     MPARating mpa;
 
-    Set<Genre> genres;
+    List<Genre> genres;
 }

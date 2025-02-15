@@ -129,6 +129,7 @@ public class FilmService {
         }
 
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            film.setGenres(film.getGenres().stream().distinct().toList());
             List<Genre> absentGenres = film.getGenres().stream()
                     .filter(g -> genreStorage.getById(g.getId()).isEmpty())
                     .toList();

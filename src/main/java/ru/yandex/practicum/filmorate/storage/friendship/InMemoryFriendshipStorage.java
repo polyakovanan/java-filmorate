@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.friendship;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Friendship;
 
@@ -28,9 +29,9 @@ public class InMemoryFriendshipStorage implements FriendshipStorage {
         if ((friendshipOp.isEmpty())) {
             friendFriendshipOp.ifPresent(friendship -> friendship.setAccepted(true));
             if (friendFriendshipOp.isPresent()) {
-                friendships.add(new Friendship(friendId, userId, true));
+                friendships.add(new Friendship(userId, friendId, true));
             } else {
-                friendships.add(new Friendship(friendId, userId, false));
+                friendships.add(new Friendship(userId, friendId, false));
             }
         }
     }

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.mparating;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.MPARating;
 
