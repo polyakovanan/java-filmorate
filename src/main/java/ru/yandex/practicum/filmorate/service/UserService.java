@@ -60,18 +60,13 @@ public class UserService {
 
         if (userOptional.isPresent()) {
             validate(user);
-            User currentUser = userOptional.get();
-            currentUser.setLogin(user.getLogin());
-            currentUser.setEmail(user.getEmail());
-            currentUser.setBirthday(user.getBirthday());
-            currentUser.setName(user.getName());
             if (user.getName() == null || user.getName().isBlank()) {
-                currentUser.setName(user.getLogin());
+                user.setName(user.getLogin());
             } else {
                 log.warn("Не указано имя пользователя. Приравниваем его к логину");
-                currentUser.setName(user.getName());
+                user.setName(user.getName());
             }
-
+            User currentUser = userStorage.update(user);
             log.info("Пользователь обновлен");
             log.debug(currentUser.toString());
             return currentUser;
@@ -84,10 +79,7 @@ public class UserService {
     public List<User> findFriends(Long id) {
         Optional<User> user = userStorage.getById(id);
         if (user.isPresent()) {
-            Set<Long> friends = friendshipStorage.getFriendsByUserId(id);
-            return userStorage.getAll().stream()
-                    .filter(u -> friends.contains(u.getId()))
-                    .toList();
+            return userStorage.findFriendsById(id);
         } else {
             log.error(String.format(NOT_FOUND_MESSAGE, id));
             throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
@@ -101,23 +93,6 @@ public class UserService {
             if (friend.isPresent()) {
                 friendshipStorage.create(id, friendId);
                 log.info("Пользователь с id = {} добавил друга с id = {}", id, friendId);
-            } else {
-                log.error(String.format(NOT_FOUND_MESSAGE, friendId));
-                throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, friendId));
-            }
-        } else {
-            log.error(String.format(NOT_FOUND_MESSAGE, id));
-            throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
-        }
-    }
-
-    public void acceptFriend(Long id, Long friendId) {
-        Optional<User> user = userStorage.getById(id);
-        if (user.isPresent()) {
-            Optional<User> friend = userStorage.getById(friendId);
-            if (friend.isPresent()) {
-                friendshipStorage.accept(id, friendId);
-                log.info("Пользователь с id = {} одобрил заявку друга с id = {}", id, friendId);
             } else {
                 log.error(String.format(NOT_FOUND_MESSAGE, friendId));
                 throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, friendId));
@@ -150,16 +125,7 @@ public class UserService {
         if (user.isPresent()) {
             Optional<User> otherUser = userStorage.getById(otherId);
             if (otherUser.isPresent()) {
-                Set<Long> friends = friendshipStorage.getFriendsByUserId(id);
-                Set<Long> otherFriends = friendshipStorage.getFriendsByUserId(otherId);
-                List<Long> intersect = friends.stream()
-                        .filter(otherFriends::contains)
-                        .toList();
-
-                return userStorage.getAll()
-                        .stream()
-                        .filter(u -> intersect.contains(u.getId()))
-                        .toList();
+                return userStorage.findCommonFriends(id, otherId);
             } else {
                 log.error(String.format(NOT_FOUND_MESSAGE, otherId));
                 throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, otherId));

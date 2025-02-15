@@ -1,33 +1,43 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.dal.repository.FilmRepository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Component("dbFilmStorage")
 @Primary
+@RequiredArgsConstructor
 public class DbFilmStorage implements FilmStorage {
+    final FilmRepository filmRepository;
+
     @Override
     public List<Film> getAll() {
-        return List.of();
+        return filmRepository.findAll();
     }
 
     @Override
     public Optional<Film> getById(long id) {
-        return Optional.empty();
+        return filmRepository.findById(id);
     }
 
     @Override
-    public Film create(Film user) {
-        return null;
+    public List<Film> getPopular(int count) {
+        return filmRepository.findPopular(count);
     }
 
     @Override
-    public Film update(Film user) {
-        return null;
+    public Film create(Film film) {
+        return filmRepository.create(film);
+    }
+
+    @Override
+    public Film update(Film film) {
+        return filmRepository.update(film);
     }
 
     @Override

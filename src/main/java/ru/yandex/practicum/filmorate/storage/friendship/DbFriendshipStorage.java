@@ -1,31 +1,33 @@
 package ru.yandex.practicum.filmorate.storage.friendship;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.Friendship;
+import ru.yandex.practicum.filmorate.storage.dal.repository.FriendshipRepository;
 
+import java.util.List;
 import java.util.Set;
 
 @Component("dbFriendshipStorage")
 @Primary
-public class DbFriendshipStorage implements FriendshipStorage{
+@RequiredArgsConstructor
+public class DbFriendshipStorage implements FriendshipStorage {
+    final FriendshipRepository friendshipRepository;
+
     @Override
-    public Set<Long> getFriendsByUserId(long id) {
-        return Set.of();
+    public List<Friendship> findAll() {
+        return friendshipRepository.findAll();
     }
 
     @Override
     public void create(long userId, long friendId) {
-
-    }
-
-    @Override
-    public void accept(long userId, long friendId) {
-
+        friendshipRepository.create(userId, friendId);
     }
 
     @Override
     public void remove(long userId, long friendId) {
-
+        friendshipRepository.remove(userId, friendId);
     }
 
     @Override

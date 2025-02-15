@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MPARating;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -62,11 +63,7 @@ public class FilmService {
 
         if (filmOptional.isPresent()) {
             validate(film);
-            Film currentFilm = filmOptional.get();
-            currentFilm.setName(film.getName());
-            currentFilm.setDescription(film.getDescription());
-            currentFilm.setReleaseDate(film.getReleaseDate());
-            currentFilm.setDuration(film.getDuration());
+            Film currentFilm = filmStorage.update(film);
             log.info("Фильм успешно обновлен");
             return currentFilm;
         } else {
@@ -112,9 +109,7 @@ public class FilmService {
     private void validate(Film film) throws DuplicatedDataException, ValidationException {
         List<Film> films = filmStorage.getAll();
         if (films.stream()
-                .anyMatch(f -> f.getName().equals(film.getName())
-                        && f.getReleaseDate().equals(film.getReleaseDate())
-                        && !Objects.equals(f.getId(), film.getId()))) {
+                .anyMatch(f -> f.equals(film))) {
             log.error("Фильм с названием {} и датой релиза {} уже существует", film.getName(), film.getReleaseDate());
             throw new DuplicatedDataException("Фильм с таким названием и датой релиза уже существует");
         }
@@ -125,17 +120,17 @@ public class FilmService {
                     Film.CINEMA_BIRTH_DAY.format(DataUtils.DATE_FORMATTER));
         }
 
-        if (film.getMpaRating() != null) {
-            Optional<MPARating> rating = mpaRatingStorage.getById(film.getMpaRating());
+        if (film.getMpa() != null) {
+            Optional<MPARating> rating = mpaRatingStorage.getById(film.getMpa().getId());
             if (rating.isEmpty()) {
-                log.error("Рейтинг с id = {} не найден", film.getMpaRating());
-                throw new NotFoundException("Рейтинг с id = " + film.getMpaRating() + " не найден");
+                log.error("Рейтинг с id = {} не найден", film.getMpa().getId());
+                throw new NotFoundException("Рейтинг с id = " + film.getMpa().getId() + " не найден");
             }
         }
 
-        if (!film.getGenres().isEmpty()) {
-            List<Long> absentGenres = film.getGenres().stream()
-                    .filter(g -> genreStorage.getById(g).isEmpty())
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            List<Genre> absentGenres = film.getGenres().stream()
+                    .filter(g -> genreStorage.getById(g.getId()).isEmpty())
                     .toList();
             if (!absentGenres.isEmpty()) {
                 log.error("Фильм содержит жанры, которых нет в базе c id = {}", absentGenres);
@@ -145,12 +140,6 @@ public class FilmService {
     }
 
     public List<Film> findPopular(int count) {
-        Set<Long> filmIds = likeStorage.getPopularFilms(count);
-        List<Film> films = new ArrayList<>();
-        filmIds.forEach(id -> {
-            Optional<Film> film = filmStorage.getById(id);
-            film.ifPresent(films::add);
-        });
-        return films;
+        return filmStorage.getPopular(count);
     }
 }

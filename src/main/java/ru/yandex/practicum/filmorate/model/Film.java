@@ -6,12 +6,14 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
+@EqualsAndHashCode(of = {"name", "releaseDate", "mpa", "genres"})
 @Builder
 public class Film {
     public static final LocalDate CINEMA_BIRTH_DAY = LocalDate.of(1895, 12, 28);
@@ -27,7 +29,7 @@ public class Film {
 
     @Positive(message = "Длительность не может быть отрицательной")
     Integer duration;
-    Long mpaRating;
+    MPARating mpa;
 
-    Set<Long> genres = new HashSet<>();
+    Set<Genre> genres;
 }

@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,8 +15,8 @@ import java.util.Optional;
 public class UserRepository extends BaseRepository<User> {
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM users WHERE id = ?";
     private static final String FIND_ALL_QUERY = "SELECT * FROM users";
-    private static final String INSERT_QUERY = "INSERT INTO users (email, login, name, birthdate) VALUES (?, ?, ?, ?)";
-    private static final String UPDATE_QUERY = "UPDATE users SET email = ?, login = ?, name = ?, birthdate = ? WHERE id = ?";
+    private static final String INSERT_QUERY = "INSERT INTO users (email, login, name, birthday) VALUES (?, ?, ?, ?)";
+    private static final String UPDATE_QUERY = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
 
     private static final String FIND_FRIENDS_BY_ID_QUERY = "SELECT * FROM users WHERE id IN (SELECT friend_id FROM friendships WHERE user_id = ?)";
     private static final String FIND_COMMON_FRIENDS_QUERY = "SELECT * FROM users " +
@@ -40,7 +41,7 @@ public class UserRepository extends BaseRepository<User> {
                 user.getEmail(),
                 user.getLogin(),
                 user.getName(),
-                Timestamp.from(Instant.from(user.getBirthday()))
+                Timestamp.from(user.getBirthday().atStartOfDay().toInstant(ZoneOffset.UTC))
         );
         user.setId(id);
         return user;
@@ -51,7 +52,8 @@ public class UserRepository extends BaseRepository<User> {
                 user.getEmail(),
                 user.getLogin(),
                 user.getName(),
-                Timestamp.from(Instant.from(user.getBirthday()))
+                Timestamp.from(user.getBirthday().atStartOfDay().toInstant(ZoneOffset.UTC)),
+                user.getId()
         );
         return user;
     }

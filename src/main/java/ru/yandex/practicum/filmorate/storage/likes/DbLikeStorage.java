@@ -1,36 +1,33 @@
 package ru.yandex.practicum.filmorate.storage.likes;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Like;
+import ru.yandex.practicum.filmorate.storage.dal.repository.LikeRepository;
 
-import java.util.Set;
+import java.util.List;
 
 @Component("dbLikeStorage")
 @Primary
+@RequiredArgsConstructor
 public class DbLikeStorage implements LikeStorage {
-    @Override
-    public Set<Long> getFilmsByUserId(long id) {
-        return Set.of();
-    }
+    final LikeRepository likeRepository;
 
     @Override
-    public Set<Long> getUsersByFilmId(long id) {
-        return Set.of();
-    }
-
-    @Override
-    public Set<Long> getPopularFilms(int count) {
-        return Set.of();
+    public List<Like> findAll() {
+        return likeRepository.findAll();
     }
 
     @Override
     public void create(long userId, long filmId) {
-
+        likeRepository.create(userId, filmId);
     }
 
     @Override
     public void remove(long userId, long filmId) {
-
+        likeRepository.remove(userId, filmId);
     }
 
     @Override

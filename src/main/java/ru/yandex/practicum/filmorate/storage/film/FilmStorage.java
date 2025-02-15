@@ -10,9 +10,11 @@ public interface FilmStorage {
 
     Optional<Film> getById(long id);
 
-    Film create(Film user);
+    List<Film> getPopular(int count);
 
-    Film update(Film user);
+    Film create(Film film);
+
+    Film update(Film film);
 
     void clear();
 }

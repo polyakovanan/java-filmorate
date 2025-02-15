@@ -1,23 +1,36 @@
 package ru.yandex.practicum.filmorate.storage.dal.repository;
 
-import jakarta.validation.Valid;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.sql.Timestamp;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class FilmRepository extends BaseRepository<Film> {
-    private static final String FIND_BY_ID_QUERY = "SELECT * FROM films WHERE id = ?";
-    private static final String FIND_ALL_QUERY = "SELECT * FROM users";
-    private static final String FIND_POPULAR_QUERY = "SELECT f.* FROM films f " +
-                                                    "JOIN likes l on l.film.id = f.id " +
+    private static final String FIND_BY_ID_QUERY = "SELECT f.*, mpa.name as mpa_name, string_agg(g.id, ', ') as genre_ids, string_agg(g.name, ', ') as genre_names " +
+                                                   "FROM films f " +
+                                                   "LEFT JOIN film_genres fg on fg.film_id = f.id " +
+                                                   "LEFT JOIN genres g on g.id = fg.genre_id " +
+                                                   "LEFT JOIN mpa_ratings mpa on mpa.id = f.mpa_rating " +
+                                                   "WHERE f.id = ? " +
+                                                   "GROUP BY f.id";
+    private static final String FIND_ALL_QUERY = "SELECT f.*, mpa.name as mpa_name, string_agg(g.id, ', ') as genre_ids, string_agg(g.name, ', ') as genre_names " +
+                                                 "FROM films f " +
+                                                 "LEFT JOIN film_genres fg on fg.film_id = f.id " +
+                                                 "LEFT JOIN genres g on g.id = fg.genre_id " +
+                                                 "LEFT JOIN mpa_ratings mpa on mpa.id = f.mpa_rating " +
+                                                 "GROUP BY f.id";
+    private static final String FIND_POPULAR_QUERY = "SELECT f.*, mpa.name as mpa_name, string_agg(g.id, ', ') as genre_ids, string_agg(g.name, ', ') as genre_names " +
+                                                    "FROM films f " +
+                                                    "LEFT JOIN film_genres fg on fg.film_id = f.id " +
+                                                    "LEFT JOIN genres g on g.id = fg.genre_id " +
+                                                    "LEFT JOIN mpa_ratings mpa on mpa.id = f.mpa_rating " +
+                                                    "LEFT JOIN likes l on l.film_id = f.id " +
                                                     "GROUP BY f.id " +
                                                     "ORDER BY count(l.user_id) DESC limit ?";
     private static final String INSERT_QUERY = "INSERT INTO films (name, description, release_date, duration, mpa_rating) VALUES (?, ?, ?, ?, ?)";
@@ -45,11 +58,13 @@ public class FilmRepository extends BaseRepository<Film> {
         Long id = insertWithGeneratedId(INSERT_QUERY,
                 film.getName(),
                 film.getDescription(),
-                film.getReleaseDate(),
+                Timestamp.from(film.getReleaseDate().atStartOfDay().toInstant(ZoneOffset.UTC)),
                 film.getDuration(),
-                film.getMpaRating());
+                film.getMpa().getId());
         film.setId(id);
-        film.getGenres().forEach(genre -> insert(INSERT_GENRES_QUERY, id, genre));
+        if (film.getGenres() != null) {
+            film.getGenres().forEach(genre -> insert(INSERT_GENRES_QUERY, id, genre.getId()));
+        }
         return film;
     }
 
@@ -57,13 +72,15 @@ public class FilmRepository extends BaseRepository<Film> {
         update(UPDATE_QUERY,
                 film.getName(),
                 film.getDescription(),
-                film.getReleaseDate(),
+                Timestamp.from(film.getReleaseDate().atStartOfDay().toInstant(ZoneOffset.UTC)),
                 film.getDuration(),
-                film.getMpaRating(),
+                film.getMpa().getId(),
                 film.getId());
 
         delete(DELETE_GENRES_QUERY, film.getId());
-        film.getGenres().forEach(genre -> insert(INSERT_GENRES_QUERY, film.getId(), genre));
+        if (film.getGenres() != null) {
+            film.getGenres().forEach(genre -> insert(INSERT_GENRES_QUERY, film.getId(), genre));
+        }
         return film;
     }
 }

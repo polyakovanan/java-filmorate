@@ -1,13 +1,12 @@
 package ru.yandex.practicum.filmorate.storage.likes;
 
-import java.util.Set;
+import ru.yandex.practicum.filmorate.model.Like;
+
+import java.util.List;
 
 public interface LikeStorage {
-    Set<Long> getFilmsByUserId(long id);
 
-    Set<Long> getUsersByFilmId(long id);
-
-    Set<Long> getPopularFilms(int count);
+    List<Like> findAll();
 
     void create(long userId, long filmId);
 

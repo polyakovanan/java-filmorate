@@ -14,5 +14,9 @@ public interface UserStorage {
 
     User update(User user);
 
+    List<User> findFriendsById(long id);
+
+    List<User> findCommonFriends(long id, long otherId);
+
     void clear();
 }
