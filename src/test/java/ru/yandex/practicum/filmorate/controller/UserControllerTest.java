@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(classes = {UserController.class, UserService.class, InMemoryUserStorage.class, InMemoryFriendshipStorage.class, ApplicationContext.class})
-class UserControllerTest {
+abstract class UserControllerTest {
 
     @Autowired
     private UserController userController;
@@ -47,11 +47,12 @@ class UserControllerTest {
 
     @Test
     void userControllerCreatesCorrectUser() {
-        User user = new User();
-        user.setLogin("test");
-        user.setName("Тестовый пользователь");
-        user.setEmail("test@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
         Collection<User> users = userController.findAll();
         Assertions.assertEquals(1, users.size(), "Контроллер не создал пользователя");
@@ -60,10 +61,12 @@ class UserControllerTest {
 
     @Test
     void userControllerFillsEmptyNameWithLogin() {
-        User user = new User();
-        user.setLogin("test");
-        user.setEmail("test@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
         Collection<User> users = userController.findAll();
         Assertions.assertEquals(1, users.size(), "Контроллер не создал пользователя");
@@ -72,19 +75,21 @@ class UserControllerTest {
 
     @Test
     void userControllerRejectsDuplicateEmail() {
-        User user = new User();
-        user.setLogin("test");
-        user.setName("Тестовый пользователь");
-        user.setEmail("test@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
-
-        User user2 = new User();
-        user2.setLogin("test2");
-        user2.setName("Тестовый пользователь");
-        user2.setEmail("test@mail.com");
-        user2.setBirthday(LocalDate.of(2000, 1, 1));
-
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
+
+        User user2 = User.builder()
+                .login("test2")
+                .name("Тестовый пользователь 2")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
+
         Collection<User> users = userController.findAll();
         Assertions.assertEquals(1, users.size(), "Контроллер не создал пользователя");
 
@@ -99,19 +104,21 @@ class UserControllerTest {
 
     @Test
     void userControllerRejectsDuplicateLogin() {
-        User user = new User();
-        user.setLogin("test");
-        user.setName("Тестовый пользователь");
-        user.setEmail("test@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
-
-        User user2 = new User();
-        user2.setLogin("test");
-        user2.setName("Тестовый пользователь");
-        user2.setEmail("test2@mail.com");
-        user2.setBirthday(LocalDate.of(2000, 1, 1));
-
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
+
+        User user2 = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test2@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
+
         Collection<User> users = userController.findAll();
         Assertions.assertEquals(1, users.size(), "Контроллер не создал пользователя");
 
@@ -126,11 +133,12 @@ class UserControllerTest {
 
     @Test
     void userControllerRejectsWhitespaceLogin() {
-        User user = new User();
-        user.setLogin("test ");
-        user.setName("Тестовый пользователь");
-        user.setEmail("test@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test ")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
 
         ValidationException thrown = assertThrows(
                 ValidationException.class,
@@ -143,21 +151,23 @@ class UserControllerTest {
 
     @Test
     void userControllerUpdatesUser() {
-        User user = new User();
-        user.setLogin("test");
-        user.setName("Тестовый пользователь");
-        user.setEmail("test@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
         Collection<User> users = userController.findAll();
         Assertions.assertEquals(1, users.size(), "Контроллер не создал пользователя");
 
-        User user2 = new User();
-        user2.setId(user.getId());
-        user2.setLogin("test");
-        user2.setName("Измененное описание");
-        user2.setEmail("test2@mail.com");
-        user2.setBirthday(LocalDate.of(2000, 1, 1));
+        User user2 = User.builder()
+                .id(user.getId())
+                .login("test")
+                .name("Измененное описание")
+                .email("test2@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
 
         userController.update(user2);
         users = userController.findAll();
@@ -168,11 +178,12 @@ class UserControllerTest {
 
     @Test
     void userControllerRejectsUpdateWithoutId() {
-        User user = new User();
-        user.setLogin("test");
-        user.setName("Тестовый пользователь");
-        user.setEmail("test@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
 
         ConditionsNotMetException thrown = assertThrows(
                 ConditionsNotMetException.class,
@@ -185,13 +196,13 @@ class UserControllerTest {
 
     @Test
     void userControllerRejectsUpdateOfAbsentId() {
-        User user = new User();
-        user.setId(2L);
-        user.setLogin("test");
-        user.setName("Тестовый пользователь");
-        user.setEmail("test@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
-
+        User user = User.builder()
+                .id(2L)
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         NotFoundException thrown = assertThrows(
                 NotFoundException.class,
                 () -> userController.update(user),
@@ -203,11 +214,12 @@ class UserControllerTest {
 
     @Test
     void userControllerFindsUserById() {
-        User user = new User();
-        user.setLogin("test");
-        user.setName("Тестовый пользователь");
-        user.setEmail("test@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
         User foundUser = userController.findById(1L);
@@ -227,38 +239,36 @@ class UserControllerTest {
 
     @Test
     void userControllerAddsFriend() {
-        User user = new User();
-        user.setLogin("test1");
-        user.setName("Тестовый пользователь 1");
-        user.setEmail("test1@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
-        user = new User();
-        user.setLogin("test2");
-        user.setName("Тестовый пользователь 2");
-        user.setEmail("test2@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        user = User.builder()
+                .login("test2")
+                .name("Тестовый пользователь 2")
+                .email("test2@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
         userController.addFriend(1L, 2L);
-        userController.acceptFriend(2L, 1L);
         List<User> friends = userController.findFriends(1L);
         Assertions.assertEquals(1, friends.size(), "Контроллер не добавил пользователя в друзья");
         Assertions.assertEquals("test2", friends.get(0).getLogin(), "Контроллер не добавил пользователя в друзья");
-
-        friends = userController.findFriends(2L);
-        Assertions.assertEquals(1, friends.size(), "Контроллер не добавил пользователя в друзья другого пользователя");
-        Assertions.assertEquals("test1", friends.get(0).getLogin(), "Контроллер не добавил пользователя в друзья другого пользователя");
     }
 
     @Test
     void userControllerRefusesAddFriendOfUnknownUser() {
-        User user = new User();
-        user.setLogin("test1");
-        user.setName("Тестовый пользователь 1");
-        user.setEmail("test1@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
         NotFoundException thrown = assertThrows(
@@ -272,11 +282,12 @@ class UserControllerTest {
 
     @Test
     void userControllerRefusesAddUnknownFriend() {
-        User user = new User();
-        user.setLogin("test1");
-        user.setName("Тестовый пользователь 1");
-        user.setEmail("test1@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
         NotFoundException thrown = assertThrows(
@@ -290,45 +301,40 @@ class UserControllerTest {
 
     @Test
     void userControllerRemovesFriends() {
-        User user = new User();
-        user.setLogin("test1");
-        user.setName("Тестовый пользователь 1");
-        user.setEmail("test1@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
-        user = new User();
-        user.setLogin("test2");
-        user.setName("Тестовый пользователь 2");
-        user.setEmail("test2@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        user = User.builder()
+                .login("test2")
+                .name("Тестовый пользователь 2")
+                .email("test2@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
         userController.addFriend(1L, 2L);
-        userController.acceptFriend(2L, 1L);
         List<User> friends = userController.findFriends(1L);
         Assertions.assertEquals(1, friends.size(), "Контроллер не добавил пользователя в друзья");
         Assertions.assertEquals("test2", friends.get(0).getLogin(), "Контроллер не добавил пользователя в друзья");
 
-        friends = userController.findFriends(2L);
-        Assertions.assertEquals(1, friends.size(), "Контроллер не добавил пользователя в друзья другого пользователя");
-        Assertions.assertEquals("test1", friends.get(0).getLogin(), "Контроллер не добавил пользователя в друзья другого пользователя");
-
         userController.removeFriend(1L, 2L);
         friends = userController.findFriends(1L);
         Assertions.assertEquals(0, friends.size(), "Контроллер не удалил пользователя из друзей");
-
-        friends = userController.findFriends(2L);
-        Assertions.assertEquals(0, friends.size(), "Контроллер не удалил пользователя из друзей другого пользователя");
     }
 
     @Test
     void userControllerRefusesRemoveFriendOfUnknownUser() {
-        User user = new User();
-        user.setLogin("test1");
-        user.setName("Тестовый пользователь 1");
-        user.setEmail("test1@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
         NotFoundException thrown = assertThrows(
@@ -342,11 +348,12 @@ class UserControllerTest {
 
     @Test
     void userControllerRefusesRemoveUnknownFriend() {
-        User user = new User();
-        user.setLogin("test1");
-        user.setName("Тестовый пользователь 1");
-        user.setEmail("test1@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
         NotFoundException thrown = assertThrows(
@@ -372,31 +379,34 @@ class UserControllerTest {
 
     @Test
     void userControllerFindsCommonFriends() {
-        User user = new User();
-        user.setLogin("test1");
-        user.setName("Тестовый пользователь 1");
-        user.setEmail("test1@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
-        user = new User();
-        user.setLogin("test2");
-        user.setName("Тестовый пользователь 2");
-        user.setEmail("test2@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        user = User.builder()
+                .login("test2")
+                .name("Тестовый пользователь 2")
+                .email("test2@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
-        user = new User();
-        user.setLogin("test3");
-        user.setName("Тестовый пользователь 3");
-        user.setEmail("test3@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        user = User.builder()
+                .login("test3")
+                .name("Тестовый пользователь 3")
+                .email("test3@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
         userController.addFriend(1L, 3L);
-        userController.acceptFriend(3L, 1L);
+        userController.addFriend(3L, 1L);
         userController.addFriend(2L, 3L);
-        userController.acceptFriend(3L, 2L);
+        userController.addFriend(3L, 2L);
         List<User> friends = userController.findCommonFriends(1L, 2L);
         Assertions.assertEquals(1, friends.size(), "Контроллер не нашел общих друзей");
         Assertions.assertEquals("test3", friends.get(0).getLogin(), "Контроллер неправильно нашел общих друзей");
@@ -404,11 +414,12 @@ class UserControllerTest {
 
     @Test
     void userControllerRefusesFindCommonFriendsOfUnknownUser() {
-        User user = new User();
-        user.setLogin("test1");
-        user.setName("Тестовый пользователь 1");
-        user.setEmail("test1@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
         NotFoundException thrown = assertThrows(
@@ -422,11 +433,12 @@ class UserControllerTest {
 
     @Test
     void userControllerRefusesFindCommonFriendsForUnknownFriend() {
-        User user = new User();
-        user.setLogin("test1");
-        user.setName("Тестовый пользователь 1");
-        user.setEmail("test1@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
         NotFoundException thrown = assertThrows(

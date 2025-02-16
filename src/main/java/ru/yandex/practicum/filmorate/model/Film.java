@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
+
 
 @Data
 @EqualsAndHashCode(of = {"name", "releaseDate", "mpa", "genres"})

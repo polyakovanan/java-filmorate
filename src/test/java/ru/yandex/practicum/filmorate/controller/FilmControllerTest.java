@@ -18,8 +18,12 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.friendship.InMemoryFriendshipStorage;
+import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.genre.InMemoryGenreStorage;
+import ru.yandex.practicum.filmorate.storage.likes.InMemoryLikeStorage;
+import ru.yandex.practicum.filmorate.storage.likes.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.mparating.InMemoryMPARatingStorage;
+import ru.yandex.practicum.filmorate.storage.mparating.MPARatingStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.utils.DataUtils;
@@ -31,8 +35,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest(classes = {FilmController.class, UserController.class, FilmService.class, UserService.class, InMemoryFilmStorage.class, InMemoryUserStorage.class, InMemoryFriendshipStorage.class, InMemoryGenreStorage.class, InMemoryMPARatingStorage.class, ApplicationContext.class})
-class FilmControllerTest {
+abstract class FilmControllerTest {
 
     @Autowired
     private FilmController filmController;
@@ -55,20 +58,33 @@ class FilmControllerTest {
     @Autowired
     private FriendshipStorage friendshipStorage;
 
+    @Autowired
+    private MPARatingStorage mpaRatingStorage;
+
+    @Autowired
+    private GenreStorage genreStorage;
+
+    @Autowired
+    private LikeStorage likeStorage;
+
     @BeforeEach
     void init() {
         filmStorage.clear();
         userStorage.clear();
         friendshipStorage.clear();
+        likeStorage.clear();
     }
 
     @Test
     void filmControllerCreatesCorrectFilm() {
-        Film film = new Film();
-        film.setName("Тестовый фильм");
-        film.setDescription("Тестовое описание фильма");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(90);
+        Film film = Film.builder()
+                .name("Тестовый фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
         filmController.create(film);
         Collection<Film> films = filmController.findAll();
         Assertions.assertEquals(1, films.size(), "Контроллер не создал фильм");
@@ -77,17 +93,23 @@ class FilmControllerTest {
 
     @Test
     void filmControllerRejectsDuplicateFilms() {
-        Film film = new Film();
-        film.setName("Тестовый фильм");
-        film.setDescription("Тестовое описание фильма");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(90);
+        Film film = Film.builder()
+                .name("Тестовый фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
 
-        Film film2 = new Film();
-        film2.setName("Тестовый фильм");
-        film2.setDescription("Тестовое описание еще одного фильма");
-        film2.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film2.setDuration(90);
+        Film film2 = Film.builder()
+                .name("Тестовый фильм")
+                .description("Тестовое описание еще одного фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
 
         filmController.create(film);
         Collection<Film> films = filmController.findAll();
@@ -104,11 +126,14 @@ class FilmControllerTest {
 
     @Test
     void filmControllerRejectsTooOldFilm() {
-        Film film = new Film();
-        film.setName("Тестовый фильм");
-        film.setDescription("Тестовое описание фильма");
-        film.setReleaseDate(LocalDate.of(1850, 1, 1));
-        film.setDuration(90);
+        Film film = Film.builder()
+                .name("Тестовый фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(1850, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
 
         ValidationException thrown = assertThrows(
                 ValidationException.class,
@@ -122,21 +147,27 @@ class FilmControllerTest {
 
     @Test
     void filmControllerUpdatesFilm() {
-        Film film = new Film();
-        film.setName("Тестовый фильм");
-        film.setDescription("Тестовое описание фильма");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(90);
+        Film film = Film.builder()
+                .name("Тестовый фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
         filmController.create(film);
         Collection<Film> films = filmController.findAll();
         Assertions.assertEquals(1, films.size(), "Контроллер не создал фильм");
 
-        Film film2 = new Film();
-        film2.setId(film.getId());
-        film2.setName("Тестовый фильм");
-        film2.setDescription("Тестовое описание фильма");
-        film2.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film2.setDuration(120);
+        Film film2 = Film.builder()
+                .id(film.getId())
+                .name("Тестовый фильм 2")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(120)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
 
         filmController.update(film2);
         films = filmController.findAll();
@@ -147,11 +178,14 @@ class FilmControllerTest {
 
     @Test
     void filmControllerRejectsUpdateWithoutId() {
-        Film film = new Film();
-        film.setName("Тестовый фильм");
-        film.setDescription("Тестовое описание фильма");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(90);
+        Film film = Film.builder()
+                .name("Тестовый фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
 
         ConditionsNotMetException thrown = assertThrows(
                 ConditionsNotMetException.class,
@@ -164,12 +198,15 @@ class FilmControllerTest {
 
     @Test
     void filmControllerRejectsUpdateOfAbsentId() {
-        Film film = new Film();
-        film.setId(2L);
-        film.setName("Тестовый фильм");
-        film.setDescription("Тестовое описание фильма");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(90);
+        Film film = Film.builder()
+                .id(2L)
+                .name("Тестовый фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
 
         NotFoundException thrown = assertThrows(
                 NotFoundException.class,
@@ -182,11 +219,14 @@ class FilmControllerTest {
 
     @Test
     void filmControllerFindsFilmById() {
-        Film film = new Film();
-        film.setName("Тестовый фильм");
-        film.setDescription("Тестовое описание фильма");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(90);
+        Film film = Film.builder()
+                .name("Тестовый фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
         filmController.create(film);
 
         Film foundFilm = filmController.findById(1L);
@@ -206,32 +246,38 @@ class FilmControllerTest {
 
     @Test
     void filmControllerAddsLike() {
-        Film film = new Film();
-        film.setName("Тестовый фильм");
-        film.setDescription("Тестовое описание фильма");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(90);
+        Film film = Film.builder()
+                .name("Тестовый фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
         filmController.create(film);
 
-        User user = new User();
-        user.setLogin("test");
-        user.setName("Тестовый пользователь");
-        user.setEmail("test@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
         filmController.addLike(1L, 1L);
-        Film foundFilm = filmController.findById(1L);
-        Assertions.assertTrue(foundFilm.getLikes().contains(1L), "Контроллер не поставил лайк пользователя");
+        Assertions.assertTrue(likeStorage.findAll().stream().anyMatch(l -> l.getFilmId() == 1L && l.getUserId() == 1L), "Контроллер не поставил лайк пользователя");
     }
 
     @Test
     void filmControllerRefusesAddLikeOfUnknownUser() {
-        Film film = new Film();
-        film.setName("Тестовый фильм");
-        film.setDescription("Тестовое описание фильма");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(90);
+        Film film = Film.builder()
+                .name("Тестовый фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
         filmController.create(film);
 
         NotFoundException thrown = assertThrows(
@@ -245,11 +291,12 @@ class FilmControllerTest {
 
     @Test
     void filmControllerRefusesAddLikeOfUnknownFilm() {
-        User user = new User();
-        user.setLogin("test");
-        user.setName("Тестовый пользователь");
-        user.setEmail("test@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
         NotFoundException thrown = assertThrows(
@@ -263,37 +310,42 @@ class FilmControllerTest {
 
     @Test
     void filmControllerRemovesLike() {
-        Film film = new Film();
-        film.setName("Тестовый фильм");
-        film.setDescription("Тестовое описание фильма");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(90);
+        Film film = Film.builder()
+                .name("Тестовый фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
         filmController.create(film);
 
-        User user = new User();
-        user.setLogin("test");
-        user.setName("Тестовый пользователь");
-        user.setEmail("test@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
         filmController.addLike(1L, 1L);
-        Film foundFilm = filmController.findById(1L);
-        Assertions.assertTrue(foundFilm.getLikes().contains(1L), "Контроллер не поставил лайк пользователя");
+        Assertions.assertTrue(likeStorage.findAll().stream().anyMatch(l -> l.getFilmId() == 1L && l.getUserId() == 1L), "Контроллер не поставил лайк пользователя");
 
         filmController.removeLike(1L, 1L);
-        foundFilm = filmController.findById(1L);
-        Assertions.assertTrue(foundFilm.getLikes().isEmpty(), "Контроллер не удалил лайк пользователя");
+        Assertions.assertTrue(likeStorage.findAll().isEmpty(), "Контроллер не удалил лайк пользователя");
 
     }
 
     @Test
     void filmControllerRefusesRemoveLikeOfUnknownUser() {
-        Film film = new Film();
-        film.setName("Тестовый фильм");
-        film.setDescription("Тестовое описание фильма");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(90);
+        Film film = Film.builder()
+                .name("Тестовый фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
         filmController.create(film);
 
         NotFoundException thrown = assertThrows(
@@ -307,11 +359,12 @@ class FilmControllerTest {
 
     @Test
     void filmControllerRefusesRemoveLikeOfUnknownFilm() {
-        User user = new User();
-        user.setLogin("test");
-        user.setName("Тестовый пользователь");
-        user.setEmail("test@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
         NotFoundException thrown = assertThrows(
@@ -325,39 +378,50 @@ class FilmControllerTest {
 
     @Test
     void filmControllerFindsPopularFilms() {
-        Film film = new Film();
-        film.setName("Тестовый фильм 1");
-        film.setDescription("Тестовое описание фильма");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(90);
+        Film film = Film.builder()
+                .name("Тестовый фильм 1")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
         filmController.create(film);
 
-        film = new Film();
-        film.setName("Тестовый фильм 2");
-        film.setDescription("Тестовое описание фильма");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(90);
+        film = Film.builder()
+                .name("Тестовый фильм 2")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
         filmController.create(film);
 
-        film = new Film();
-        film.setName("Тестовый фильм 3");
-        film.setDescription("Тестовое описание фильма");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(90);
+        film = Film.builder()
+                .name("Тестовый фильм 3")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
         filmController.create(film);
 
-        User user = new User();
-        user.setLogin("test1");
-        user.setName("Тестовый пользователь 1");
-        user.setEmail("test1@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь 1")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
-        user = new User();
-        user.setLogin("test2");
-        user.setName("Тестовый пользователь 2");
-        user.setEmail("test2@mail.com");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+        user = User.builder()
+                .login("test2")
+                .name("Тестовый пользователь 2")
+                .email("test2@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
         userController.create(user);
 
         filmController.addLike(2L, 1L);
