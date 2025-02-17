@@ -30,11 +30,6 @@ public class BaseRepository<T> {
         return jdbc.query(query, mapper, params);
     }
 
-    protected boolean deleteById(String query, long id) {
-        int rowsDeleted = jdbc.update(query, id);
-        return rowsDeleted > 0;
-    }
-
     protected boolean delete(String query, Object... params) {
         int rowsDeleted = jdbc.update(query, params);
         return rowsDeleted > 0;

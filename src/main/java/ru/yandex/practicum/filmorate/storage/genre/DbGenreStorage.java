@@ -12,7 +12,7 @@ import java.util.Optional;
 @Component("dbGenreStorage")
 @Primary
 @RequiredArgsConstructor
-public class DbGenreStorage implements GenreStorage{
+public class DbGenreStorage implements GenreStorage {
     final GenreRepository genreRepository;
 
     @Override

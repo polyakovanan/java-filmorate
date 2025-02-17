@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.controller;
+package ru.yandex.practicum.filmorate.controller.user;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -6,10 +6,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Friendship;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
@@ -21,8 +23,7 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes = {UserController.class, UserService.class, InMemoryUserStorage.class, InMemoryFriendshipStorage.class, ApplicationContext.class})
 abstract class UserControllerTest {
@@ -448,6 +449,41 @@ abstract class UserControllerTest {
         );
 
         assertTrue(thrown.getMessage().contains("Пользователь с id = " + 2L + " не найден"));
+    }
+
+    @Test
+    void friendshipStorageFindsAllFriends() {
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
+        userController.create(user);
+
+        user = User.builder()
+                .login("test2")
+                .name("Тестовый пользователь 2")
+                .email("test2@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
+        userController.create(user);
+
+        user = User.builder()
+                .login("test3")
+                .name("Тестовый пользователь 3")
+                .email("test3@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
+        userController.create(user);
+
+        userController.addFriend(1L, 3L);
+        userController.addFriend(3L, 1L);
+        userController.addFriend(2L, 3L);
+        userController.addFriend(3L, 2L);
+
+        List<Friendship> friendships = friendshipStorage.findAll();
+        assertEquals(4, friendships.size(), "Контроллер не нашел списки друзей");
     }
 
 }

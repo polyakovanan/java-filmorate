@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -34,10 +33,14 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> getPopular(int count) {
-        return likeStorage.findAll().stream()
-                .collect(Collectors.groupingBy(Like::getFilmId, Collectors.counting())).entrySet()
+        Map<Long, Long> likedFilms = new HashMap<>();
+        films.values().forEach(film -> likedFilms.put(film.getId(), 0L));
+        likedFilms.putAll(likeStorage.findAll().stream()
+                .collect(Collectors.groupingBy(Like::getFilmId, Collectors.counting())));
+
+        return likedFilms.entrySet()
                 .stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
                 .limit(count)
                 .map(Map.Entry::getKey)
                 .map(this::getById)
@@ -70,8 +73,8 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (film.getGenres() == null) {
             film.setGenres(new ArrayList<>());
         }
-        film.getGenres().
-                forEach(g -> {
+        film.getGenres()
+                .forEach(g -> {
                     Optional<Genre> genre = genreStorage.getById(g.getId());
                     genre.ifPresent(value -> g.setName(value.getName()));
                 });

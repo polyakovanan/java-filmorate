@@ -19,6 +19,7 @@ public class FriendshipRepository extends BaseRepository<Friendship> {
     public FriendshipRepository(JdbcTemplate jdbc, RowMapper<Friendship> mapper) {
         super(jdbc, mapper);
     }
+
     public List<Friendship> findAll() {
         return findMany(FIND_ALL_QUERY);
     }

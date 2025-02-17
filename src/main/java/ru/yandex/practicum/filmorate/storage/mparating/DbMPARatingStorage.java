@@ -12,7 +12,7 @@ import java.util.Optional;
 @Component("dbMPARatingStorage")
 @Primary
 @RequiredArgsConstructor
-public class DbMPARatingStorage implements MPARatingStorage{
+public class DbMPARatingStorage implements MPARatingStorage {
     final MPARatingRepository mpaRatingRepository;
 
     @Override

@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.storage.likes;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Like;
 import ru.yandex.practicum.filmorate.storage.dal.repository.LikeRepository;
 

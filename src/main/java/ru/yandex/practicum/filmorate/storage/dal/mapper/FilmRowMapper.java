@@ -14,7 +14,7 @@ import java.util.stream.IntStream;
 @Component
 public class FilmRowMapper implements RowMapper<Film> {
     @Override
-    public Film mapRow (ResultSet resultSet, int rowNum) throws SQLException {
+    public Film mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         List<String> genreIds = resultSet.getString("genre_ids") != null
                                 ? List.of(resultSet.getString("genre_ids").split(", "))
                                 : new ArrayList<>();

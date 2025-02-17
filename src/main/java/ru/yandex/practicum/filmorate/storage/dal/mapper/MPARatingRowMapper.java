@@ -10,7 +10,7 @@ import java.sql.SQLException;
 @Component
 public class MPARatingRowMapper implements RowMapper<MPARating> {
     @Override
-    public MPARating mapRow (ResultSet resultSet, int rowNum) throws SQLException {
+    public MPARating mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         return MPARating.builder()
                 .id(resultSet.getLong("id"))
                 .name(resultSet.getString("name"))

@@ -79,7 +79,7 @@ public class FilmRepository extends BaseRepository<Film> {
 
         delete(DELETE_GENRES_QUERY, film.getId());
         if (film.getGenres() != null) {
-            film.getGenres().forEach(genre -> insert(INSERT_GENRES_QUERY, film.getId(), genre));
+            film.getGenres().forEach(genre -> insert(INSERT_GENRES_QUERY, film.getId(), genre.getId()));
         }
         return film;
     }

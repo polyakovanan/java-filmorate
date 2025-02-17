@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.model.Friendship;
 import ru.yandex.practicum.filmorate.storage.dal.repository.FriendshipRepository;
 
 import java.util.List;
-import java.util.Set;
 
 @Component("dbFriendshipStorage")
 @Primary
