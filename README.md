@@ -35,7 +35,7 @@ UPDATE
 SET name                = ?,
     description         = ?,
     release_date        = ?,
-    duration
+    duration		= ?
 WHERE id = ?;
 
 INSERT INTO film_genres (film_id,
@@ -112,8 +112,8 @@ VALUES (?, ?);
 * `Удаление` лайка с фильма:
 ```SQL
 DELETE FROM likes 
-WHERE (user_id,= ?
-AND film_id)= ?;
+WHERE (user_id = ?
+AND film_id = ?);
 ```
 </details>
 
