@@ -5,7 +5,7 @@ import ru.yandex.practicum.filmorate.model.Like;
 
 import java.util.*;
 
-@Component("inMemoryLikeStorage")
+@Component
 public class InMemoryLikeStorage implements LikeStorage {
     final Set<Like> likes = new HashSet<>();
 

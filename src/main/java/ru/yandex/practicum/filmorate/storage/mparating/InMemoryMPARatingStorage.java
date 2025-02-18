@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Component("inMemoryMPARatingStorage")
+@Component
 public class InMemoryMPARatingStorage implements MPARatingStorage {
     Map<Long, MPARating> ratings = new HashMap<>();
 

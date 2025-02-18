@@ -8,7 +8,7 @@ import ru.yandex.practicum.filmorate.storage.dal.repository.FriendshipRepository
 
 import java.util.List;
 
-@Component("dbFriendshipStorage")
+@Component
 @Primary
 @RequiredArgsConstructor
 public class DbFriendshipStorage implements FriendshipStorage {

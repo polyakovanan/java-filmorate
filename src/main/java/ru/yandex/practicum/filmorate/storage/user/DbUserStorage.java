@@ -9,7 +9,7 @@ import ru.yandex.practicum.filmorate.storage.dal.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
 
-@Component("dbUserStorage")
+@Component
 @Primary
 @RequiredArgsConstructor
 public class DbUserStorage implements UserStorage {

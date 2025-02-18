@@ -9,7 +9,7 @@ import ru.yandex.practicum.filmorate.storage.dal.repository.FilmRepository;
 import java.util.List;
 import java.util.Optional;
 
-@Component("dbFilmStorage")
+@Component
 @Primary
 @RequiredArgsConstructor
 public class DbFilmStorage implements FilmStorage {

@@ -9,7 +9,7 @@ import ru.yandex.practicum.filmorate.storage.dal.repository.MPARatingRepository;
 import java.util.List;
 import java.util.Optional;
 
-@Component("dbMPARatingStorage")
+@Component
 @Primary
 @RequiredArgsConstructor
 public class DbMPARatingStorage implements MPARatingStorage {

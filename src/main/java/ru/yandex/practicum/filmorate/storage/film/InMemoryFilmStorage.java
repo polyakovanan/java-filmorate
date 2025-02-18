@@ -13,7 +13,7 @@ import ru.yandex.practicum.filmorate.storage.mparating.InMemoryMPARatingStorage;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Component("inMemoryFilmStorage")
+@Component
 @RequiredArgsConstructor
 public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Long, Film> films = new HashMap<>();

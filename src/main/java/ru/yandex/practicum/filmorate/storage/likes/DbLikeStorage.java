@@ -8,7 +8,7 @@ import ru.yandex.practicum.filmorate.storage.dal.repository.LikeRepository;
 
 import java.util.List;
 
-@Component("dbLikeStorage")
+@Component
 @Primary
 @RequiredArgsConstructor
 public class DbLikeStorage implements LikeStorage {

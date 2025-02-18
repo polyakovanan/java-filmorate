@@ -9,7 +9,7 @@ import ru.yandex.practicum.filmorate.storage.dal.repository.GenreRepository;
 import java.util.List;
 import java.util.Optional;
 
-@Component("dbGenreStorage")
+@Component
 @Primary
 @RequiredArgsConstructor
 public class DbGenreStorage implements GenreStorage {
