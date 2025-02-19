@@ -39,7 +39,7 @@ public class FilmController {
     @ResponseStatus(HttpStatus.CREATED)
     public Film create(@RequestBody
                        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                       @Valid  Film film) {
+                       @Valid Film film) {
 
         log.info("Запрос на создание фильма");
         log.debug(film.toString());
