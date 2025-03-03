@@ -143,4 +143,8 @@ public class FilmService {
     public List<Film> findPopular(int count) {
         return filmStorage.getPopular(count);
     }
+
+    public List<Film> findCommon(Long userId, Long friendId) {
+        return filmStorage.getCommon(userId, friendId);
+    }
 }
