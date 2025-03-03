@@ -40,7 +40,7 @@ public class FilmRepository extends BaseRepository<Film> {
                                                     "LEFT JOIN mpa_ratings mpa on mpa.id = f.mpa_rating " +
                                                     "LEFT JOIN likes l on l.film_id = f.id " +
                                                     "WHERE f.id IN (" +
-                                                        "SELECT l.film_id " +
+                                                        "SELECT l1.film_id " +
                                                         "FROM likes l1 " +
                                                         "JOIN likes l2 on l1.film_id = l2.film_id " +
                                                         "WHERE l1.user_id = ? AND l2.user_id = ?" +
