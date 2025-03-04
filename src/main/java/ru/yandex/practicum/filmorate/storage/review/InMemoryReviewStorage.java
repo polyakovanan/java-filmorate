@@ -18,7 +18,7 @@ public class InMemoryReviewStorage implements ReviewStorage {
                 .filter(review -> filmId == null || review.getFilmId().equals(filmId))
                 .sorted(Comparator.comparingInt(Review::getUseful).reversed())
                 .limit(count)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override

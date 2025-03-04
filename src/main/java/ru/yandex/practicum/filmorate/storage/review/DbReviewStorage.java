@@ -33,9 +33,7 @@ public class DbReviewStorage implements ReviewStorage {
     @Override
     public Review update(Review review) {
         Optional<Review> existingReview = reviewRepository.findById(review.getReviewId());
-        if (existingReview.isPresent()) {
-            review.setUseful(existingReview.get().getUseful()); // Preserve the useful count
-        }
+        existingReview.ifPresent(value -> review.setUseful(value.getUseful()));
         return reviewRepository.update(review);
     }
 
@@ -46,22 +44,22 @@ public class DbReviewStorage implements ReviewStorage {
 
     @Override
     public void addLike(long id, long userId) {
-        reviewRepository.addLike(id, userId);
+        reviewRepository.addReaction(id, userId, true);
     }
 
     @Override
     public void addDislike(long id, long userId) {
-        reviewRepository.addDislike(id, userId);
+        reviewRepository.addReaction(id, userId, false);
     }
 
     @Override
     public void removeLike(long id, long userId) {
-        reviewRepository.removeLike(id, userId);
+        reviewRepository.removeReaction(id, userId);
     }
 
     @Override
     public void removeDislike(long id, long userId) {
-        reviewRepository.removeDislike(id, userId);
+        reviewRepository.removeReaction(id, userId);
     }
 
     @Override
