@@ -512,7 +512,7 @@ abstract class UserControllerTest {
     }
 
     @Test
-    void UserControllerFindsFeed() {
+    void userControllerFindsFeed() {
         User user = User.builder()
                 .login("test")
                 .name("Тестовый пользователь")
