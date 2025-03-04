@@ -12,11 +12,10 @@ import java.util.Optional;
 public class ReviewRepository extends BaseRepository<Review> {
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM reviews WHERE review_id = ?";
     private static final String FIND_ALL_QUERY = "SELECT * FROM reviews WHERE film_id = ? OR ? IS NULL ORDER BY useful DESC LIMIT ?";
-    private static final String INSERT_QUERY = "INSERT INTO reviews (content, is_positive, user_id, film_id, useful) VALUES (?, ?, ?, ?, 0)";
+    private static final String INSERT_QUERY = "INSERT INTO reviews (content, is_positive, user_id, film_id) VALUES (?, ?, ?, ?)";
     private static final String UPDATE_QUERY = "UPDATE reviews SET content = ?, is_positive = ? WHERE review_id = ?";
     private static final String DELETE_QUERY = "DELETE FROM reviews WHERE review_id = ?";
-    private static final String ADD_LIKE_QUERY = "INSERT INTO review_reactions (review_id, user_id, is_positive) VALUES (?, ?, true)";
-    private static final String ADD_DISLIKE_QUERY = "INSERT INTO review_reactions (review_id, user_id, is_positive) VALUES (?, ?, false)";
+    private static final String ADD_REACTION_QUERY = "INSERT INTO review_reactions (review_id, user_id, is_positive) VALUES (?, ?, ?)";
     private static final String REMOVE_REACTION_QUERY = "DELETE FROM review_reactions WHERE review_id = ? AND user_id = ?";
     private static final String UPDATE_USEFUL_QUERY = "UPDATE reviews SET useful = (SELECT COUNT(CASE WHEN is_positive THEN 1 END) - COUNT(CASE WHEN NOT is_positive THEN 1 END) FROM review_reactions WHERE review_id = ?) WHERE review_id = ?";
 
@@ -55,24 +54,13 @@ public class ReviewRepository extends BaseRepository<Review> {
         delete(DELETE_QUERY, reviewId);
     }
 
-    public void addLike(long reviewId, long userId) {
+    public void addReaction(long reviewId, long userId, boolean isPositive) {
         delete(REMOVE_REACTION_QUERY, reviewId, userId);
-        insert(ADD_LIKE_QUERY, reviewId, userId);
+        insert(ADD_REACTION_QUERY, reviewId, userId, isPositive);
         update(UPDATE_USEFUL_QUERY, reviewId, reviewId);
     }
 
-    public void addDislike(long reviewId, long userId) {
-        delete(REMOVE_REACTION_QUERY, reviewId, userId);
-        insert(ADD_DISLIKE_QUERY, reviewId, userId);
-        update(UPDATE_USEFUL_QUERY, reviewId, reviewId);
-    }
-
-    public void removeLike(long reviewId, long userId) {
-        delete(REMOVE_REACTION_QUERY, reviewId, userId);
-        update(UPDATE_USEFUL_QUERY, reviewId, reviewId);
-    }
-
-    public void removeDislike(long reviewId, long userId) {
+    public void removeReaction(long reviewId, long userId) {
         delete(REMOVE_REACTION_QUERY, reviewId, userId);
         update(UPDATE_USEFUL_QUERY, reviewId, reviewId);
     }

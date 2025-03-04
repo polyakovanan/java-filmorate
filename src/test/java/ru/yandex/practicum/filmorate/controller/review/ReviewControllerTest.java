@@ -157,6 +157,34 @@ abstract class ReviewControllerTest {
         assertEquals(5, reviews.size(), "Контроллер должен ограничить количество отзывов до указанного значения");
     }
 
+    @Test
+    void reviewControllerRemovesLikeAndDislike() {
+        User user = createTestUser();
+        User otherUser = createTestUser();
+        Film film = createTestFilm();
+        Review review = createTestReview(user.getId(), film.getId());
+
+        Review createdReview = reviewController.create(review);
+
+        // Add and remove like
+        reviewController.addLike(createdReview.getReviewId(), otherUser.getId());
+        Review reviewWithLike = reviewController.findById(createdReview.getReviewId());
+        assertEquals(1, reviewWithLike.getUseful(), "Контроллер не учел лайк");
+
+        reviewController.removeLike(createdReview.getReviewId(), otherUser.getId());
+        Review reviewAfterLikeRemoval = reviewController.findById(createdReview.getReviewId());
+        assertEquals(0, reviewAfterLikeRemoval.getUseful(), "Контроллер не удалил лайк");
+
+        // Add and remove dislike
+        reviewController.addDislike(createdReview.getReviewId(), user.getId());
+        Review reviewWithDislike = reviewController.findById(createdReview.getReviewId());
+        assertEquals(-1, reviewWithDislike.getUseful(), "Контроллер не учел дизлайк");
+
+        reviewController.removeDislike(createdReview.getReviewId(), user.getId());
+        Review reviewAfterDislikeRemoval = reviewController.findById(createdReview.getReviewId());
+        assertEquals(0, reviewAfterDislikeRemoval.getUseful(), "Контроллер не удалил дизлайк");
+    }
+
     private User createTestUser() {
         long timestamp = System.nanoTime();
         User user = User.builder()
