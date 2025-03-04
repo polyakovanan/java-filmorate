@@ -6,6 +6,9 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.model.event.EventOperation;
+import ru.yandex.practicum.filmorate.model.event.EventType;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 
 import java.util.List;
@@ -17,6 +20,7 @@ import java.util.Optional;
 public class ReviewService {
     static final String NOT_FOUND_MESSAGE = "Отзыв с id = %s не найден";
     final ReviewStorage reviewStorage;
+    final EventStorage eventStorage;
     final UserService userService;
     final FilmService filmService;
 
@@ -41,6 +45,7 @@ public class ReviewService {
         Review createdReview = reviewStorage.create(review);
         log.info("Отзыв создан");
         log.debug(createdReview.toString());
+        eventStorage.create(createdReview.getUserId(), createdReview.getReviewId(), EventType.REVIEW, EventOperation.ADD);
         return createdReview;
     }
 
@@ -55,6 +60,7 @@ public class ReviewService {
             validateReview(review);
             Review updatedReview = reviewStorage.update(review);
             log.info("Отзыв обновлен");
+            eventStorage.create(updatedReview.getUserId(), updatedReview.getReviewId(), EventType.REVIEW, EventOperation.UPDATE);
             return updatedReview;
         } else {
             log.error(String.format(NOT_FOUND_MESSAGE, review.getReviewId()));
@@ -63,8 +69,9 @@ public class ReviewService {
     }
 
     public void delete(Long id) {
-        findById(id);
+        Review review = findById(id);
         reviewStorage.delete(id);
+        eventStorage.create(review.getUserId(), review.getReviewId(), EventType.REVIEW, EventOperation.REMOVE);
         log.info("Отзыв с id = {} удален", id);
     }
 

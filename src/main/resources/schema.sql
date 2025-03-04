@@ -63,3 +63,13 @@ CREATE TABLE IF NOT EXISTS review_reactions (
     CONSTRAINT fk_review_reactions_review FOREIGN KEY (review_id) REFERENCES reviews (review_id) ON DELETE CASCADE,
     CONSTRAINT fk_review_reactions_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS feed (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    entity_id BIGINT NOT NULL,
+    event_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    event_type VARCHAR(6) NOT NULL,
+    event_operation VARCHAR(6) NOT NULL,
+    CONSTRAINT fk_feed_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
