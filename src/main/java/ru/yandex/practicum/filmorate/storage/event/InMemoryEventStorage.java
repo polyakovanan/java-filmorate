@@ -17,7 +17,7 @@ public class InMemoryEventStorage implements EventStorage {
 
     @Override
     public List<Event> findByUserId(Long id) {
-        return userEvents.get(id) == null ? new ArrayList<>() : userEvents.get(id).stream().sorted(Comparator.comparing(Event::getEventId).reversed()).toList();
+        return userEvents.get(id) == null ? new ArrayList<>() : userEvents.get(id).stream().sorted(Comparator.comparing(Event::getEventId)).toList();
     }
 
     @Override

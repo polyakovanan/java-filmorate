@@ -10,8 +10,8 @@ import ru.yandex.practicum.filmorate.model.event.EventType;
 import java.util.List;
 
 @Repository
-public class EventRepository extends BaseRepository<Event>{
-    private static final String FIND_BY_USER_ID_QUERY = "SELECT * FROM feed WHERE user_id = ? ORDER BY event_time DESC";
+public class EventRepository extends BaseRepository<Event> {
+    private static final String FIND_BY_USER_ID_QUERY = "SELECT * FROM feed WHERE user_id = ? ORDER BY event_time";
     private static final String INSERT_QUERY = "INSERT INTO feed (user_id, entity_id, event_type, event_operation) VALUES (?, ?, ?, ?)";
 
     public EventRepository(JdbcTemplate jdbc, RowMapper<Event> mapper) {

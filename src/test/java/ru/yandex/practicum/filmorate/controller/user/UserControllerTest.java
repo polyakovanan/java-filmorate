@@ -558,20 +558,20 @@ abstract class UserControllerTest {
 
         List<Event> feed = userController.findFeed(1L);
         Assertions.assertEquals(7, feed.size(), "Контроллер не нашел все события");
-        Assertions.assertEquals(EventType.REVIEW, feed.get(0).getEventType(), "Контроллер не нашел событие об удалении отзыва");
-        Assertions.assertEquals(EventOperation.REMOVE, feed.get(0).getOperation(), "Контроллер не нашел событие об удалении отзыва");
-        Assertions.assertEquals(EventType.REVIEW, feed.get(1).getEventType(), "Контроллер не нашел событие об обновлении отзыва");
-        Assertions.assertEquals(EventOperation.UPDATE, feed.get(1).getOperation(), "Контроллер не нашел событие об обновлении отзыва");
-        Assertions.assertEquals(EventType.REVIEW, feed.get(2).getEventType(), "Контроллер не нашел событие о добавлении отзыва");
-        Assertions.assertEquals(EventOperation.ADD, feed.get(2).getOperation(), "Контроллер не нашел событие о добавлении отзыва");
+        Assertions.assertEquals(EventType.REVIEW, feed.get(6).getEventType(), "Контроллер не нашел событие об удалении отзыва");
+        Assertions.assertEquals(EventOperation.REMOVE, feed.get(6).getOperation(), "Контроллер не нашел событие об удалении отзыва");
+        Assertions.assertEquals(EventType.REVIEW, feed.get(5).getEventType(), "Контроллер не нашел событие об обновлении отзыва");
+        Assertions.assertEquals(EventOperation.UPDATE, feed.get(5).getOperation(), "Контроллер не нашел событие об обновлении отзыва");
+        Assertions.assertEquals(EventType.REVIEW, feed.get(4).getEventType(), "Контроллер не нашел событие о добавлении отзыва");
+        Assertions.assertEquals(EventOperation.ADD, feed.get(4).getOperation(), "Контроллер не нашел событие о добавлении отзыва");
         Assertions.assertEquals(EventType.LIKE, feed.get(3).getEventType(), "Контроллер не нашел событие об удалении лайка");
         Assertions.assertEquals(EventOperation.REMOVE, feed.get(3).getOperation(), "Контроллер не нашел событие об удалении лайка");
-        Assertions.assertEquals(EventType.LIKE, feed.get(4).getEventType(), "Контроллер не нашел событие о добавлении лайка");
-        Assertions.assertEquals(EventOperation.ADD, feed.get(4).getOperation(), "Контроллер не нашел событие о добавлении лайка");
-        Assertions.assertEquals(EventType.FRIEND, feed.get(5).getEventType(), "Контроллер не нашел событие об удалении друга");
-        Assertions.assertEquals(EventOperation.REMOVE, feed.get(5).getOperation(), "Контроллер не нашел событие об удалении друга");
-        Assertions.assertEquals(EventType.FRIEND, feed.get(6).getEventType(), "Контроллер не нашел событие о добавлении друга");
-        Assertions.assertEquals(EventOperation.ADD, feed.get(6).getOperation(), "Контроллер не нашел событие о добавлении друга");
+        Assertions.assertEquals(EventType.LIKE, feed.get(2).getEventType(), "Контроллер не нашел событие о добавлении лайка");
+        Assertions.assertEquals(EventOperation.ADD, feed.get(2).getOperation(), "Контроллер не нашел событие о добавлении лайка");
+        Assertions.assertEquals(EventType.FRIEND, feed.get(1).getEventType(), "Контроллер не нашел событие об удалении друга");
+        Assertions.assertEquals(EventOperation.REMOVE, feed.get(1).getOperation(), "Контроллер не нашел событие об удалении друга");
+        Assertions.assertEquals(EventType.FRIEND, feed.get(0).getEventType(), "Контроллер не нашел событие о добавлении друга");
+        Assertions.assertEquals(EventOperation.ADD, feed.get(0).getOperation(), "Контроллер не нашел событие о добавлении друга");
 
     }
 }
