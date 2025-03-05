@@ -11,6 +11,9 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MPARating;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.event.EventOperation;
+import ru.yandex.practicum.filmorate.model.event.EventType;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.likes.LikeStorage;
@@ -31,6 +34,7 @@ public class FilmService {
     final MPARatingStorage mpaRatingStorage;
     final GenreStorage genreStorage;
     final LikeStorage likeStorage;
+    final EventStorage eventStorage;
 
     public List<Film> findAll() {
         return filmStorage.getAll();
@@ -87,6 +91,7 @@ public class FilmService {
             log.error(String.format(NOT_FOUND_MESSAGE, id));
             throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
         }
+        eventStorage.create(userId, id, EventType.LIKE, EventOperation.ADD);
     }
 
     public void removeLike(Long id, Long userId) {
@@ -104,6 +109,7 @@ public class FilmService {
             log.error(String.format(NOT_FOUND_MESSAGE, id));
             throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
         }
+        eventStorage.create(userId, id, EventType.LIKE, EventOperation.REMOVE);
     }
 
     private void validate(Film film) throws DuplicatedDataException, ValidationException {

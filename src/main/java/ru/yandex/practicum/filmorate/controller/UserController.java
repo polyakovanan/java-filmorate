@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.event.Event;
+import ru.yandex.practicum.filmorate.service.RecommendationService;
 import ru.yandex.practicum.filmorate.service.RecommendationService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -77,6 +79,12 @@ public class UserController {
     public void removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
         log.info("Запрос на удаление друга с id {} у пользователя с id = {}", friendId, id);
         userService.removeFriend(id, friendId);
+    }
+
+    @GetMapping("/{id}/feed")
+    public List<Event> findFeed(@PathVariable Long id) {
+        log.info("Запрос на получение событий пользователя с id = {}", id);
+        return userService.findFeed(id);
     }
 
     @GetMapping("/{id}/recommendations")

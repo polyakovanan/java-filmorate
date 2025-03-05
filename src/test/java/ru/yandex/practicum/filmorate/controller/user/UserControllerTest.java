@@ -4,19 +4,26 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
+import ru.yandex.practicum.filmorate.controller.FilmController;
+import ru.yandex.practicum.filmorate.controller.ReviewController;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Friendship;
+import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.event.Event;
+import ru.yandex.practicum.filmorate.model.event.EventOperation;
+import ru.yandex.practicum.filmorate.model.event.EventType;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
-import ru.yandex.practicum.filmorate.storage.friendship.InMemoryFriendshipStorage;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.likes.LikeStorage;
+import ru.yandex.practicum.filmorate.storage.mparating.MPARatingStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
@@ -25,11 +32,16 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(classes = {UserController.class, UserService.class, InMemoryUserStorage.class, InMemoryFriendshipStorage.class, ApplicationContext.class})
 abstract class UserControllerTest {
 
     @Autowired
     private UserController userController;
+
+    @Autowired
+    private FilmController filmController;
+
+    @Autowired
+    private ReviewController reviewController;
 
     @Autowired
     private UserService userService;
@@ -40,10 +52,23 @@ abstract class UserControllerTest {
     @Autowired
     private FriendshipStorage friendshipStorage;
 
+    @Autowired
+    private EventStorage eventStorage;
+
+    @Autowired
+    private MPARatingStorage mpaRatingStorage;
+
+    @Autowired
+    private GenreStorage genreStorage;
+
+    @Autowired
+    private LikeStorage likeStorage;
+
     @BeforeEach
     void init() {
         userStorage.clear();
         friendshipStorage.clear();
+        eventStorage.clear();
     }
 
     @Test
@@ -486,4 +511,67 @@ abstract class UserControllerTest {
         assertEquals(4, friendships.size(), "Контроллер не нашел списки друзей");
     }
 
+    @Test
+    void userControllerFindsFeed() {
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
+        userController.create(user);
+
+        user = User.builder()
+                .login("test2")
+                .name("Тестовый пользователь 2")
+                .email("test2@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
+        userController.create(user);
+
+        Film film = Film.builder()
+                .name("Тестовый фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
+
+        filmController.create(film);
+
+        Review review = Review.builder()
+                .content("Test Review Content")
+                .isPositive(true)
+                .userId(1L)
+                .filmId(1L)
+                .build();
+
+        userController.addFriend(1L, 2L);
+        userController.removeFriend(1L, 2L);
+        filmController.addLike(1L, 1L);
+        filmController.removeLike(1L, 1L);
+        reviewController.create(review);
+        review.setContent("updated review");
+        reviewController.update(review);
+        reviewController.delete(1L);
+
+        List<Event> feed = userController.findFeed(1L);
+        Assertions.assertEquals(7, feed.size(), "Контроллер не нашел все события");
+        Assertions.assertEquals(EventType.REVIEW, feed.get(6).getEventType(), "Контроллер не нашел событие об удалении отзыва");
+        Assertions.assertEquals(EventOperation.REMOVE, feed.get(6).getOperation(), "Контроллер не нашел событие об удалении отзыва");
+        Assertions.assertEquals(EventType.REVIEW, feed.get(5).getEventType(), "Контроллер не нашел событие об обновлении отзыва");
+        Assertions.assertEquals(EventOperation.UPDATE, feed.get(5).getOperation(), "Контроллер не нашел событие об обновлении отзыва");
+        Assertions.assertEquals(EventType.REVIEW, feed.get(4).getEventType(), "Контроллер не нашел событие о добавлении отзыва");
+        Assertions.assertEquals(EventOperation.ADD, feed.get(4).getOperation(), "Контроллер не нашел событие о добавлении отзыва");
+        Assertions.assertEquals(EventType.LIKE, feed.get(3).getEventType(), "Контроллер не нашел событие об удалении лайка");
+        Assertions.assertEquals(EventOperation.REMOVE, feed.get(3).getOperation(), "Контроллер не нашел событие об удалении лайка");
+        Assertions.assertEquals(EventType.LIKE, feed.get(2).getEventType(), "Контроллер не нашел событие о добавлении лайка");
+        Assertions.assertEquals(EventOperation.ADD, feed.get(2).getOperation(), "Контроллер не нашел событие о добавлении лайка");
+        Assertions.assertEquals(EventType.FRIEND, feed.get(1).getEventType(), "Контроллер не нашел событие об удалении друга");
+        Assertions.assertEquals(EventOperation.REMOVE, feed.get(1).getOperation(), "Контроллер не нашел событие об удалении друга");
+        Assertions.assertEquals(EventType.FRIEND, feed.get(0).getEventType(), "Контроллер не нашел событие о добавлении друга");
+        Assertions.assertEquals(EventOperation.ADD, feed.get(0).getOperation(), "Контроллер не нашел событие о добавлении друга");
+
+    }
 }
