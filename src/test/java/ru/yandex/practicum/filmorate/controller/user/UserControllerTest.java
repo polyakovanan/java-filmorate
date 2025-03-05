@@ -30,7 +30,9 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 abstract class UserControllerTest {
 
@@ -436,7 +438,7 @@ abstract class UserControllerTest {
         List<User> friends = userController.findCommonFriends(1L, 2L);
         Assertions.assertEquals(1, friends.size(), "Контроллер не нашел общих друзей");
         Assertions.assertEquals("test3", friends.get(0).getLogin(), "Контроллер неправильно нашел общих друзей");
-   }
+    }
 
     @Test
     void userControllerRefusesFindCommonFriendsOfUnknownUser() {
