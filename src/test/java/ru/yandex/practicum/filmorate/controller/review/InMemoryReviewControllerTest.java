@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.ReviewService;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.event.InMemoryEventStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.friendship.InMemoryFriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.genre.InMemoryGenreStorage;
@@ -30,6 +31,7 @@ import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
         InMemoryGenreStorage.class,
         InMemoryMPARatingStorage.class,
         InMemoryLikeStorage.class,
+        InMemoryEventStorage.class,
         ApplicationContext.class
 })
 class InMemoryReviewControllerTest extends ReviewControllerTest {
