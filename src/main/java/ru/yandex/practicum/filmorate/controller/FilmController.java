@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -71,5 +72,10 @@ public class FilmController {
     public void removeLike(@PathVariable Long id, @PathVariable Long userId) {
         log.info("Запрос удаление лайка с фильма");
         filmService.removeLike(id, userId);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<Film> findByDirector(@PathVariable Long directorId, @RequestParam String sortBy) {
+        return filmService.findByDirector(directorId, sortBy);
     }
 }

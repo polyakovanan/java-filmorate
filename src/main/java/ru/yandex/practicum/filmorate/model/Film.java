@@ -32,4 +32,5 @@ public class Film {
     MPARating mpa;
 
     List<Genre> genres;
+    List<Director> directors;
 }

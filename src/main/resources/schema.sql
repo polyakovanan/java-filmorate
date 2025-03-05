@@ -73,3 +73,14 @@ CREATE TABLE IF NOT EXISTS feed (
     event_operation VARCHAR(6) NOT NULL,
     CONSTRAINT fk_feed_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS directors (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS film_directors (
+    film_id BIGINT REFERENCES films (id) ON DELETE CASCADE,
+    director_id BIGINT REFERENCES directors (id) ON DELETE CASCADE,
+    PRIMARY KEY (film_id, director_id)
+);

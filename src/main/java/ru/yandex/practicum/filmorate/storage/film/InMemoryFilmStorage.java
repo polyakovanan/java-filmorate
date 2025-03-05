@@ -2,13 +2,12 @@ package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Like;
-import ru.yandex.practicum.filmorate.model.MPARating;
+import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.storage.director.InMemoryDirectorStorage;
 import ru.yandex.practicum.filmorate.storage.genre.InMemoryGenreStorage;
 import ru.yandex.practicum.filmorate.storage.likes.InMemoryLikeStorage;
 import ru.yandex.practicum.filmorate.storage.mparating.InMemoryMPARatingStorage;
+import ru.yandex.practicum.filmorate.model.SortBy;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,6 +19,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     private final InMemoryLikeStorage likeStorage;
     private final InMemoryGenreStorage genreStorage;
     private final InMemoryMPARatingStorage mpaRatingStorage;
+    private final InMemoryDirectorStorage directorStorage;
 
     @Override
     public List<Film> getAll() {
@@ -76,6 +76,20 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .toList();
     }
 
+    @Override
+    public List<Film> getByDirector(Long directorId, SortBy sortBy) {
+        List<Film> directorFilms = (films.values().stream()
+                .filter(film -> film.getDirectors().stream().anyMatch(d -> Objects.equals(d.getId(), directorId)))
+                .toList());
+        return switch (sortBy) {
+            case LIKES -> directorFilms.stream()
+                    .sorted(Comparator.comparingLong(f -> likeStorage.findCountByFilmId(f.getId())))
+                    .toList();
+            case YEAR -> directorFilms.stream()
+                    .sorted(Comparator.comparing(Film::getReleaseDate))
+                    .toList();
+        };
+    }
 
     @Override
     public Film create(Film film) {
@@ -106,6 +120,16 @@ public class InMemoryFilmStorage implements FilmStorage {
                     Optional<Genre> genre = genreStorage.getById(g.getId());
                     genre.ifPresent(value -> g.setName(value.getName()));
                 });
+
+        if (film.getDirectors() == null) {
+            film.setDirectors(new ArrayList<>());
+        }
+        film.getDirectors()
+                .forEach(d -> {
+                    Optional<Director> director = directorStorage.getById(d.getId());
+                    director.ifPresent(value -> d.setName(value.getName()));
+                });
+
         if (film.getMpa() != null) {
             Optional<MPARating> mpaRating = mpaRatingStorage.getById(film.getMpa().getId());
             mpaRating.ifPresent(value -> film.getMpa().setName(value.getName()));

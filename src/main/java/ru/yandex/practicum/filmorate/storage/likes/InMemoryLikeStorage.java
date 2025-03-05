@@ -14,6 +14,12 @@ public class InMemoryLikeStorage implements LikeStorage {
         return new ArrayList<>(likes);
     }
 
+    public Long findCountByFilmId(long filmId) {
+        return likes.stream()
+                .filter(f -> f.getFilmId() == filmId)
+                .count();
+    }
+
     @Override
     public void create(long userId, long filmId) {
         Optional<Like> likeOp = likes.stream()

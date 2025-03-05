@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.dal.repository.FilmRepository;
+import ru.yandex.practicum.filmorate.model.SortBy;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +34,11 @@ public class DbFilmStorage implements FilmStorage {
     @Override
     public List<Film> getCommon(long userId, long friendId) {
         return filmRepository.findCommon(userId, friendId);
+    }
+
+    @Override
+    public List<Film> getByDirector(Long directorId, SortBy sortBy) {
+        return filmRepository.getByDirector(directorId, sortBy);
     }
 
     @Override
