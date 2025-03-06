@@ -84,7 +84,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         return switch (sortBy) {
             case LIKES -> directorFilms.stream()
                     .sorted(Comparator.comparingLong(f -> likeStorage.findCountByFilmId(f.getId())))
-                    .toList();
+                    .toList().reversed();
             case YEAR -> directorFilms.stream()
                     .sorted(Comparator.comparing(Film::getReleaseDate))
                     .toList();
