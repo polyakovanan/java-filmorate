@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.dal.repository.UserRepository;
 import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -21,6 +22,7 @@ import java.util.Optional;
 public class UserService {
     static final String NOT_FOUND_MESSAGE = "Пользователь с id = %s не найден";
     final UserStorage userStorage;
+    private final UserRepository userRepository;
     final FriendshipStorage friendshipStorage;
 
     public List<User> findAll() {
@@ -156,4 +158,12 @@ public class UserService {
         }
     }
 
+    public void deleteUser(long userId) {
+        // Check if user exists.  Good practice, even with ON DELETE CASCADE.
+        Optional<User> user = userRepository.findById(userId); // Assuming findById exists
+        if (user.isEmpty()) {
+            throw new NotFoundException("User with id " + userId + " not found");
+        }
+        userRepository.deleteById(userId);
+    }
 }

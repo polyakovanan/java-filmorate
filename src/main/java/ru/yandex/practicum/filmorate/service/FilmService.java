@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MPARating;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.dal.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.likes.LikeStorage;
@@ -27,6 +28,7 @@ public class FilmService {
 
     static final String NOT_FOUND_MESSAGE = "Фильм с id = %s не найден";
     final FilmStorage filmStorage;
+    private final FilmRepository filmRepository; // New repository
     final UserStorage userStorage;
     final MPARatingStorage mpaRatingStorage;
     final GenreStorage genreStorage;
@@ -143,4 +145,14 @@ public class FilmService {
     public List<Film> findPopular(int count) {
         return filmStorage.getPopular(count);
     }
+
+public void deleteFilm(long filmId) {
+    // Check if film exists
+    Optional<Film> film = filmRepository.findById(filmId); // Assuming you have findById in your repository
+    if (film.isEmpty()) {
+        throw new NotFoundException("Film with id " + filmId + " not found");
+    }
+    filmRepository.deleteById(filmId);
 }
+}
+
