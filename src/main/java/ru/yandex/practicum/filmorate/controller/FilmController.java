@@ -74,7 +74,7 @@ public class FilmController {
         filmService.removeLike(id, userId);
     }
 
-    @DeleteMapping("/films/{filmId}")
+    @DeleteMapping("/{filmId}")
     public ResponseEntity<Void> deleteFilm(@PathVariable long filmId) {
         filmService.deleteFilm(filmId);
         return ResponseEntity.noContent().build(); // 204 No Content

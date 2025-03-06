@@ -82,7 +82,7 @@ public class UserController {
         userService.removeFriend(id, friendId);
     }
 
-    @DeleteMapping("/users/{userId}")
+    @DeleteMapping("{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable long userId) {
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build(); // 204 No Content
