@@ -12,6 +12,9 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MPARating;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.dal.repository.FilmRepository;
+import ru.yandex.practicum.filmorate.model.event.EventOperation;
+import ru.yandex.practicum.filmorate.model.event.EventType;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.likes.LikeStorage;
@@ -33,6 +36,7 @@ public class FilmService {
     final MPARatingStorage mpaRatingStorage;
     final GenreStorage genreStorage;
     final LikeStorage likeStorage;
+    final EventStorage eventStorage;
 
     public List<Film> findAll() {
         return filmStorage.getAll();
@@ -89,6 +93,7 @@ public class FilmService {
             log.error(String.format(NOT_FOUND_MESSAGE, id));
             throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
         }
+        eventStorage.create(userId, id, EventType.LIKE, EventOperation.ADD);
     }
 
     public void removeLike(Long id, Long userId) {
@@ -106,6 +111,7 @@ public class FilmService {
             log.error(String.format(NOT_FOUND_MESSAGE, id));
             throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
         }
+        eventStorage.create(userId, id, EventType.LIKE, EventOperation.REMOVE);
     }
 
     private void validate(Film film) throws DuplicatedDataException, ValidationException {
@@ -144,6 +150,20 @@ public class FilmService {
 
     public List<Film> findPopular(int count) {
         return filmStorage.getPopular(count);
+    }
+
+    public List<Film> findCommon(Long userId, Long friendId) {
+        Optional<User> user = userStorage.getById(userId);
+        if (user.isEmpty()) {
+            log.error("Пользователь с id = {} не найден", userId);
+            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
+        }
+        Optional<User> friend = userStorage.getById(friendId);
+        if (friend.isEmpty()) {
+            log.error("Пользователь с id = {} не найден", friendId);
+        }
+
+        return filmStorage.getCommon(userId, friendId);
     }
 
 public void deleteFilm(long filmId) {

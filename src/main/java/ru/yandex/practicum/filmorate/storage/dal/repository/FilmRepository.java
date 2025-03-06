@@ -34,6 +34,21 @@ public class FilmRepository extends BaseRepository<Film> {
                                                     "LEFT JOIN likes l on l.film_id = f.id " +
                                                     "GROUP BY f.id " +
                                                     "ORDER BY count(l.user_id) DESC limit ?";
+    private static final String FIND_COMMON_QUERY = "SELECT f.*, mpa.name as mpa_name, string_agg(g.id, ', ') as genre_ids, string_agg(g.name, ', ') as genre_names " +
+                                                    "FROM films f " +
+                                                    "LEFT JOIN film_genres fg on fg.film_id = f.id " +
+                                                    "LEFT JOIN genres g on g.id = fg.genre_id " +
+                                                    "LEFT JOIN mpa_ratings mpa on mpa.id = f.mpa_rating " +
+                                                    "LEFT JOIN likes l on l.film_id = f.id " +
+                                                    "WHERE f.id IN (" +
+                                                        "SELECT l1.film_id " +
+                                                        "FROM likes l1 " +
+                                                        "JOIN likes l2 on l1.film_id = l2.film_id " +
+                                                        "WHERE l1.user_id = ? AND l2.user_id = ?" +
+                                                    ")" +
+                                                    "GROUP BY f.id " +
+                                                    "ORDER BY count(l.user_id) DESC";
+
     private static final String INSERT_QUERY = "INSERT INTO films (name, description, release_date, duration, mpa_rating) VALUES (?, ?, ?, ?, ?)";
     private static final String INSERT_GENRES_QUERY = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
     private static final String DELETE_GENRES_QUERY = "DELETE FROM film_genres WHERE film_id = ?";
@@ -53,6 +68,10 @@ public class FilmRepository extends BaseRepository<Film> {
 
     public List<Film> findPopular(int count) {
         return findMany(FIND_POPULAR_QUERY, count);
+    }
+
+    public List<Film> findCommon(Long userId, Long friendId) {
+        return findMany(FIND_COMMON_QUERY, userId, friendId);
     }
 
     public Film create(Film film) {

@@ -50,6 +50,34 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> getCommon(long userId, long friendId) {
+        List<Long> commonFilms = likeStorage.findAll()
+                .stream()
+                .filter(l -> l.getUserId() == userId || l.getUserId() == friendId)
+                .map(Like::getFilmId)
+                .toList();
+
+        Map<Long, Long> likedFilms = new HashMap<>();
+        films.values()
+                .stream()
+                .filter(f -> commonFilms.contains(f.getId()))
+                .forEach(film -> likedFilms.put(film.getId(), 0L));
+
+        likedFilms.putAll(likeStorage.findAll().stream().filter(l -> commonFilms.contains(l.getFilmId()))
+                .collect(Collectors.groupingBy(Like::getFilmId, Collectors.counting())));
+
+        return likedFilms.entrySet()
+                .stream()
+                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+                .map(Map.Entry::getKey)
+                .map(this::getById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
+    }
+
+
+    @Override
     public Film create(Film film) {
         film.setId(getNextId());
         addRefNames(film);
