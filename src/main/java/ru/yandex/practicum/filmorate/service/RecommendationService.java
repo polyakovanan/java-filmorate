@@ -81,6 +81,6 @@ public class RecommendationService {
                 .distinct()
                 .map(filmId -> filmStorage.getById(filmId).orElse(null))
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .toList();
     }
 }
