@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.event.Event;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.*;
@@ -73,5 +74,11 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable long userId) {
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build(); // 204 No Content
+    }
+
+    @GetMapping("/{id}/feed")
+    public List<Event> findFeed(@PathVariable Long id) {
+        log.info("Запрос на получение событий пользователя с id = {}", id);
+        return userService.findFeed(id);
     }
 }
