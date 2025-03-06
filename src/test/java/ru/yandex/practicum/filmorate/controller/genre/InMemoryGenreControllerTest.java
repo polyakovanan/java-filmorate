@@ -5,9 +5,10 @@ import ru.yandex.practicum.filmorate.controller.GenreController;
 import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.storage.genre.InMemoryGenreStorage;
 
-@SpringBootTest(classes =
-        {GenreController.class,
+@SpringBootTest(classes = {
+        GenreController.class,
         GenreService.class,
-        InMemoryGenreStorage.class})
+        InMemoryGenreStorage.class
+})
 class InMemoryGenreControllerTest extends GenreControllerTest {
 }

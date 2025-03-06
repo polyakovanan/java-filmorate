@@ -18,8 +18,8 @@ import ru.yandex.practicum.filmorate.storage.likes.InMemoryLikeStorage;
 import ru.yandex.practicum.filmorate.storage.mparating.InMemoryMPARatingStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
-@SpringBootTest(classes =
-        {FilmController.class,
+@SpringBootTest(classes = {
+        FilmController.class,
         UserController.class,
         DirectorController.class,
         FilmService.class,
@@ -34,6 +34,7 @@ import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
         InMemoryEventStorage.class,
         InMemoryDirectorStorage.class,
         RecommendationService.class,
-        ApplicationContext.class})
+        ApplicationContext.class
+})
 public class InMemoryFilmControllerTest extends FilmControllerTest{
 }

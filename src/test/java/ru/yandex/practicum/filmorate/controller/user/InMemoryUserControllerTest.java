@@ -19,8 +19,8 @@ import ru.yandex.practicum.filmorate.storage.mparating.InMemoryMPARatingStorage;
 import ru.yandex.practicum.filmorate.storage.review.InMemoryReviewStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
-@SpringBootTest(classes =
-        {FilmController.class,
+@SpringBootTest(classes = {
+        FilmController.class,
         UserController.class,
         FilmController.class,
         InMemoryUserStorage.class,
@@ -39,6 +39,7 @@ import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
         InMemoryEventStorage.class,
         InMemoryReviewStorage.class,
         InMemoryDirectorStorage.class,
-        ApplicationContext.class})
+        ApplicationContext.class
+})
 public class InMemoryUserControllerTest extends UserControllerTest {
 }
