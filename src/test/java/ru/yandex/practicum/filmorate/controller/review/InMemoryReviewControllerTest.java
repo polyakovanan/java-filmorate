@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.controller.ReviewController;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.RecommendationService;
 import ru.yandex.practicum.filmorate.service.ReviewService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.event.InMemoryEventStorage;
@@ -22,11 +23,13 @@ import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
         FilmController.class,
         UserController.class,
         ReviewService.class,
-        FilmService.class,
+        RecommendationService.class,
         UserService.class,
+        FilmService.class,
         InMemoryReviewStorage.class,
-        InMemoryFilmStorage.class,
         InMemoryUserStorage.class,
+        InMemoryFilmStorage.class,
+        InMemoryLikeStorage.class,
         InMemoryFriendshipStorage.class,
         InMemoryGenreStorage.class,
         InMemoryMPARatingStorage.class,
@@ -34,5 +37,5 @@ import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
         InMemoryEventStorage.class,
         ApplicationContext.class
 })
-class InMemoryReviewControllerTest extends ReviewControllerTest {
+public class InMemoryReviewControllerTest extends ReviewControllerTest {
 }
