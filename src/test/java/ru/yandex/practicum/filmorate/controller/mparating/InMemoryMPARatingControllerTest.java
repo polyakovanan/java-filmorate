@@ -5,7 +5,11 @@ import ru.yandex.practicum.filmorate.controller.MPARatingController;
 import ru.yandex.practicum.filmorate.service.MPARatingService;
 import ru.yandex.practicum.filmorate.storage.mparating.InMemoryMPARatingStorage;
 
-@SpringBootTest(classes = {MPARatingController.class, MPARatingService.class, InMemoryMPARatingStorage.class})
+@SpringBootTest(classes = {
+        MPARatingController.class,
+        MPARatingService.class,
+        InMemoryMPARatingStorage.class
+})
 
 class InMemoryMPARatingControllerTest extends MPARatingControllerTest {
 }

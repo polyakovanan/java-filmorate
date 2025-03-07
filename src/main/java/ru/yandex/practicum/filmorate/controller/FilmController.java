@@ -79,4 +79,9 @@ public class FilmController {
         filmService.deleteFilm(filmId);
         return ResponseEntity.noContent().build(); // 204 No Content
     }
+
+    @GetMapping("/director/{directorId}")
+    public List<Film> findByDirector(@PathVariable Long directorId, @RequestParam String sortBy) {
+        return filmService.findByDirector(directorId, sortBy);
+    }
 }

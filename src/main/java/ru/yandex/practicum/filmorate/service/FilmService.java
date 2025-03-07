@@ -7,12 +7,10 @@ import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.MPARating;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.model.event.EventOperation;
 import ru.yandex.practicum.filmorate.model.event.EventType;
+import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
@@ -20,6 +18,7 @@ import ru.yandex.practicum.filmorate.storage.likes.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.mparating.MPARatingStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.utils.DataUtils;
+import ru.yandex.practicum.filmorate.model.SortBy;
 
 import java.util.*;
 
@@ -35,6 +34,7 @@ public class FilmService {
     final GenreStorage genreStorage;
     final LikeStorage likeStorage;
     final EventStorage eventStorage;
+    final DirectorStorage directorStorage;
 
     public List<Film> findAll() {
         return filmStorage.getAll();
@@ -144,6 +144,17 @@ public class FilmService {
                 throw new NotFoundException("Фильм содержит жанры, которых нет в базе c id = " + absentGenres);
             }
         }
+
+        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+            film.setDirectors(film.getDirectors().stream().distinct().toList());
+            List<Director> absentDirectors = film.getDirectors().stream()
+                    .filter(d -> directorStorage.getById(d.getId()).isEmpty())
+                    .toList();
+            if (!absentDirectors.isEmpty()) {
+                log.error("Фильм содержит режиссеров, которых нет в базе c id = {}", absentDirectors);
+                throw new NotFoundException("Фильм содержит режиссеров, которых нет в базе c id = " + absentDirectors);
+            }
+        }
     }
 
     public List<Film> findPopular(int count) {
@@ -164,8 +175,15 @@ public class FilmService {
         return filmStorage.getCommon(userId, friendId);
     }
 
-public void deleteFilm(long filmId) {
-    filmStorage.delete(filmId); // Вызов delete у filmStorage
-}
+    public void deleteFilm(long filmId) {
+        filmStorage.delete(filmId); // Вызов delete у filmStorage
+    }
+
+    public List<Film> findByDirector(Long directorId, String sortBy) {
+        if (Arrays.stream(SortBy.values()).noneMatch(s -> s.name().equalsIgnoreCase(sortBy))) {
+            throw new ConditionsNotMetException("Неверное значение сортировки, доступны только " + Arrays.toString(SortBy.values()));
+        }
+        return filmStorage.getByDirector(directorId, SortBy.valueOf(sortBy.toUpperCase()));
+    }
 }
 
