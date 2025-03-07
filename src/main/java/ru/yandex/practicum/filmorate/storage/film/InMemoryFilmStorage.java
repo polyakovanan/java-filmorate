@@ -53,7 +53,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     public List<Film> getCommon(long userId, long friendId) {
         List<Long> commonFilms = likeStorage.findAll()
                 .stream()
-                .filter(l -> l.getUserId() == userId || l.getUserId() == friendId)
+                .filter(like -> like.getUserId() == userId || like.getUserId() == friendId)
                 .map(Like::getFilmId)
                 .toList();
 
@@ -63,7 +63,7 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .filter(f -> commonFilms.contains(f.getId()))
                 .forEach(film -> likedFilms.put(film.getId(), 0L));
 
-        likedFilms.putAll(likeStorage.findAll().stream().filter(l -> commonFilms.contains(l.getFilmId()))
+        likedFilms.putAll(likeStorage.findAll().stream().filter(like -> commonFilms.contains(like.getFilmId()))
                 .collect(Collectors.groupingBy(Like::getFilmId, Collectors.counting())));
 
         return likedFilms.entrySet()
@@ -79,11 +79,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public List<Film> getByDirector(Long directorId, SortBy sortBy) {
         List<Film> directorFilms = (films.values().stream()
-                .filter(film -> film.getDirectors().stream().anyMatch(d -> Objects.equals(d.getId(), directorId)))
+                .filter(film -> film.getDirectors().stream().anyMatch(director -> Objects.equals(director.getId(), directorId)))
                 .toList());
         return switch (sortBy) {
             case LIKES -> directorFilms.stream()
-                    .sorted(Comparator.comparingLong(f -> likeStorage.findCountByFilmId(f.getId())))
+                    .sorted(Comparator.comparingLong(film -> likeStorage.findCountByFilmId(film.getId())))
                     .toList().reversed();
             case YEAR -> directorFilms.stream()
                     .sorted(Comparator.comparing(Film::getReleaseDate))
@@ -116,18 +116,18 @@ public class InMemoryFilmStorage implements FilmStorage {
             film.setGenres(new ArrayList<>());
         }
         film.getGenres()
-                .forEach(g -> {
-                    Optional<Genre> genre = genreStorage.getById(g.getId());
-                    genre.ifPresent(value -> g.setName(value.getName()));
+                .forEach(genre -> {
+                    Optional<Genre> genreOptional = genreStorage.getById(genre.getId());
+                    genreOptional.ifPresent(value -> genre.setName(value.getName()));
                 });
 
         if (film.getDirectors() == null) {
             film.setDirectors(new ArrayList<>());
         }
         film.getDirectors()
-                .forEach(d -> {
-                    Optional<Director> director = directorStorage.getById(d.getId());
-                    director.ifPresent(value -> d.setName(value.getName()));
+                .forEach(director -> {
+                    Optional<Director> directorOptional = directorStorage.getById(director.getId());
+                    directorOptional.ifPresent(value -> director.setName(value.getName()));
                 });
 
         if (film.getMpa() != null) {
