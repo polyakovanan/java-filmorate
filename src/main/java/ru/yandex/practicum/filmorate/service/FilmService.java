@@ -175,6 +175,10 @@ public class FilmService {
         return filmStorage.getCommon(userId, friendId);
     }
 
+    public void deleteFilm(long filmId) {
+        filmStorage.delete(filmId); // Вызов delete у filmStorage
+    }
+
     public List<Film> findByDirector(Long directorId, String sortBy) {
         if (Arrays.stream(SortBy.values()).noneMatch(s -> s.name().equalsIgnoreCase(sortBy))) {
             throw new ConditionsNotMetException("Неверное значение сортировки, доступны только " + Arrays.toString(SortBy.values()));
@@ -182,3 +186,4 @@ public class FilmService {
         return filmStorage.getByDirector(directorId, SortBy.valueOf(sortBy.toUpperCase()));
     }
 }
+

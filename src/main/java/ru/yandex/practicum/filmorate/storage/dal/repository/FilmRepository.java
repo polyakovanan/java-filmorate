@@ -67,8 +67,8 @@ public class FilmRepository extends BaseRepository<Film> {
                                                               ")" +
                                                               "GROUP BY f.id " +
                                                               "ORDER BY count(l.user_id) DESC";
-
     private static final String INSERT_QUERY = "INSERT INTO films (name, description, release_date, duration, mpa_rating) VALUES (?, ?, ?, ?, ?)";
+    private static final String DELETE_QUERY = "DELETE FROM films WHERE id = ?"; // Define it HERE
     private static final String INSERT_GENRES_QUERY = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
     private static final String DELETE_GENRES_QUERY = "DELETE FROM film_genres WHERE film_id = ?";
     private static final String INSERT_DIRECTORS_QUERY = "INSERT INTO film_directors (film_id, director_id) VALUES (?, ?)";
@@ -138,5 +138,9 @@ public class FilmRepository extends BaseRepository<Film> {
             case YEAR -> findMany(FIND_BY_DIRECTOR_YEAR_QUERY, directorId);
             case LIKES -> findMany(FIND_BY_DIRECTOR_LIKES_QUERY, directorId);
         };
+    }
+
+    public void deleteById(long filmId) {
+        jdbc.update(DELETE_QUERY, filmId);
     }
 }

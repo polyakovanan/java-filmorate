@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -78,6 +80,12 @@ public class UserController {
     public void removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
         log.info("Запрос на удаление друга с id {} у пользователя с id = {}", friendId, id);
         userService.removeFriend(id, friendId);
+    }
+
+    @DeleteMapping("{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable long userId) {
+        userService.deleteUser(userId);
+        return ResponseEntity.noContent().build(); // 204 No Content
     }
 
     @GetMapping("/{id}/feed")

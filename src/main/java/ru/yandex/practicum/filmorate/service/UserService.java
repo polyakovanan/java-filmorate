@@ -173,4 +173,7 @@ public class UserService {
         }
     }
 
+    public void deleteUser(long userId) {
+        userStorage.delete(userId);
+    }
 }

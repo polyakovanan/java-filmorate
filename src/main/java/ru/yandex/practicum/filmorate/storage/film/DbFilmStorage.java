@@ -55,4 +55,10 @@ public class DbFilmStorage implements FilmStorage {
     public void clear() {
         throw new UnsupportedOperationException("Очистка таблицы БД не поддерживается");
     }
+
+    @Override
+    public void delete(long filmId) {
+        //Using Spring Data JPA
+        filmRepository.deleteById(filmId);
+}
 }
