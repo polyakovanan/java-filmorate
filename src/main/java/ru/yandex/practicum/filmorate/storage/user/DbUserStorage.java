@@ -49,4 +49,9 @@ public class DbUserStorage implements UserStorage {
     public void clear() {
         throw new UnsupportedOperationException("Очистка таблицы БД не поддерживается");
     }
+
+    @Override
+    public void delete(long userId) {
+        userRepository.deleteById(userId);
+    }
 }

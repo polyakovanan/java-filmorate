@@ -163,4 +163,9 @@ public class FilmService {
 
         return filmStorage.getCommon(userId, friendId);
     }
+
+public void deleteFilm(long filmId) {
+    filmStorage.delete(filmId); // Вызов delete у filmStorage
 }
+}
+

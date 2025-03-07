@@ -12,6 +12,7 @@ import java.util.Optional;
 
 @Repository
 public class FilmRepository extends BaseRepository<Film> {
+    private static final String DELETE_QUERY = "DELETE FROM films WHERE id = ?"; // Define it HERE
     private static final String FIND_BY_ID_QUERY = "SELECT f.*, mpa.name as mpa_name, string_agg(g.id, ', ') as genre_ids, string_agg(g.name, ', ') as genre_names " +
                                                    "FROM films f " +
                                                    "LEFT JOIN film_genres fg on fg.film_id = f.id " +
@@ -101,5 +102,9 @@ public class FilmRepository extends BaseRepository<Film> {
             film.getGenres().forEach(genre -> insert(INSERT_GENRES_QUERY, film.getId(), genre.getId()));
         }
         return film;
+    }
+
+    public void deleteById(long filmId) {
+        jdbc.update(DELETE_QUERY, filmId);
     }
 }
