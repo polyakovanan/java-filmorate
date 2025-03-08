@@ -27,8 +27,8 @@ public class DbFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopular(int count) {
-        return filmRepository.findPopular(count);
+    public List<Film> findPopular(int count, Integer genreId, Integer year) {
+        return filmRepository.findPopular(count, genreId, year);
     }
 
     @Override

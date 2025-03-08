@@ -87,8 +87,8 @@ public class FilmRepository extends BaseRepository<Film> {
         return findOne(FIND_BY_ID_QUERY, filmId);
     }
 
-    public List<Film> findPopular(int count) {
-        return findMany(FIND_POPULAR_QUERY, count);
+    public List<Film> findPopular(int count, Integer genreId, Integer year) {
+        return findMany(FIND_POPULAR_QUERY, count, genreId, year);
     }
 
     public List<Film> findCommon(Long userId, Long friendId) {

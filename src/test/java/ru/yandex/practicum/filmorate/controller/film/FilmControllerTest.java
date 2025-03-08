@@ -432,7 +432,7 @@ abstract class FilmControllerTest {
         filmController.addLike(2L, 2L);
         filmController.addLike(1L, 1L);
 
-        List<Film> films = filmController.findPopular(10);
+        List<Film> films = filmController.findPopular(10, null, null);
         Assertions.assertEquals(3, films.size(), "Контроллер неправильно определил количество популярных фильмов");
         Assertions.assertEquals("Тестовый фильм 2", films.get(0).getName(), "Контроллер неправильно определил порядок популярных фильмов");
         Assertions.assertEquals("Тестовый фильм 1", films.get(1).getName(), "Контроллер неправильно определил порядок популярных фильмов");

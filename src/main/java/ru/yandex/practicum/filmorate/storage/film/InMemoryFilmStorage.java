@@ -32,7 +32,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopular(int count) {
+    public List<Film> findPopular(int count, Integer genreId, Integer year) {
         Map<Long, Long> likedFilms = new HashMap<>();
         films.values().forEach(film -> likedFilms.put(film.getId(), 0L));
         likedFilms.putAll(likeStorage.findAll().stream()
