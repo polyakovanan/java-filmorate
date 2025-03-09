@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.model.MPARating;
 import ru.yandex.practicum.filmorate.storage.dal.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.model.SortBy;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import java.util.List;
@@ -22,15 +24,12 @@ public class DbFilmStorage implements FilmStorage {
     final FilmRepository filmRepository;
     private final JdbcTemplate jdbcTemplate; // Declare as final
 
-    private static final String FIND_POPULAR_QUERY = "SELECT f.*, " +
-            "m.mpa_name, " +
-            "g.genre_name " +
+    private static final String FIND_POPULAR_QUERY = "SELECT f.film_id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id, " +
+            "m.mpa_name " +
             "FROM films f " +
             "LEFT JOIN mpa_ratings m ON f.mpa_rating_id = m.mpa_rating_id " +
-            "LEFT JOIN film_genres fg ON f.film_id = fg.film_id " +
-            "LEFT JOIN genres g ON fg.genre_id = g.genre_id " +
-            "LEFT JOIN likes l ON f.film_id = l.film_id ";
-
+            "LEFT JOIN film_genres fg ON f.film_id = fg.film_id " + // Keep for filtering
+            "LEFT JOIN likes l ON f.film_id = l.film_id "; // Keep for popularity
 
     @Override
     public List<Film> getAll() {
@@ -47,7 +46,6 @@ public class DbFilmStorage implements FilmStorage {
         // Build WHERE clause dynamically
         StringBuilder sql = new StringBuilder(FIND_POPULAR_QUERY);
         List<Object> params = new ArrayList<>(); // Use a List to build parameters
-
         List<String> whereClauses = new ArrayList<>();
 
         if (genreId != null) {
@@ -70,19 +68,21 @@ public class DbFilmStorage implements FilmStorage {
         System.out.println("Executing SQL: " + sql); // Debugging: Print the SQL
         System.out.println("Parameters: " + params);    // Debugging Print the parameters
 
-        return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> {
-            Film film = Film.builder()
-                    .id(rs.getLong("film_id"))
-                    .name(rs.getString("name"))
-                    .description(rs.getString("description"))
-                    .releaseDate(rs.getDate("release_date").toLocalDate())
-                    .duration(rs.getInt("duration"))
-                    .mpa(new MPARating((long) rs.getInt("mpa_rating_id"), rs.getString("mpa_name")))
-                    .build();
-            //For correct work, it is necessary that genre be added to films separately
-            addGenre(film);
-            return film;
-        }, params.toArray()); // Convert List to Object[] and add closing parenthesis
+        return jdbcTemplate.query(sql.toString(), this::mapRowToFilm, params.toArray());
+    }
+
+    private Film mapRowToFilm(ResultSet rs, int rowNum) throws SQLException {
+        Film film = Film.builder()
+                .id(rs.getLong("film_id"))
+                .name(rs.getString("name"))
+                .description(rs.getString("description"))
+                .releaseDate(rs.getDate("release_date").toLocalDate())
+                .duration(rs.getInt("duration"))
+                .mpa(new MPARating((long) rs.getInt("mpa_rating_id"), rs.getString("mpa_name")))
+                .build();
+
+        addGenre(film);
+        return film;
     }
 
     private void addGenre(Film film) {
