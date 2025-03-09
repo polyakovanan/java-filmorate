@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MPARating;
 import ru.yandex.practicum.filmorate.storage.dal.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.model.SortBy;
+
 import java.util.ArrayList;
 
 import java.util.List;
@@ -57,12 +58,10 @@ public class DbFilmStorage implements FilmStorage {
             whereClauses.add("EXTRACT(YEAR FROM f.release_date) = ?");
             params.add(year);
         }
-
-        if(!whereClauses.isEmpty()) {
+        if (!whereClauses.isEmpty()) {
             sql.append(" WHERE ");
             sql.append(String.join(" AND ", whereClauses));
         }
-
         sql.append(" GROUP BY f.film_id, m.mpa_name, g.genre_name "); //Important: Group by all selected non-aggregated columns
         sql.append(" ORDER BY COUNT(l.user_id) DESC ");
         sql.append(" LIMIT ?");
@@ -86,13 +85,13 @@ public class DbFilmStorage implements FilmStorage {
         }, params.toArray()); // Convert List to Object[] and add closing parenthesis
     }
 
-            private void addGenre(Film film) {
-                String sqlQuery = "SELECT g.genre_id, g.genre_name FROM film_genres AS fg " +
-                        "JOIN genres AS g ON g.genre_id = fg.genre_id WHERE film_id = ?";
-                List<Genre> genres = jdbcTemplate.query(sqlQuery, (rs, rowNum) ->
-                        new Genre((long) rs.getInt("genre_id"), rs.getString("genre_name")), film.getId());
-                film.setGenres(genres);
-            }
+    private void addGenre(Film film) {
+        String sqlQuery = "SELECT g.genre_id, g.genre_name FROM film_genres AS fg " +
+                "JOIN genres AS g ON g.genre_id = fg.genre_id WHERE film_id = ?";
+        List<Genre> genres = jdbcTemplate.query(sqlQuery, (rs, rowNum) ->
+                new Genre((long) rs.getInt("genre_id"), rs.getString("genre_name")), film.getId());
+        film.setGenres(genres);
+    }
 
     @Override
     public List<Film> getCommon(long userId, long friendId) {
@@ -123,5 +122,5 @@ public class DbFilmStorage implements FilmStorage {
     public void delete(long filmId) {
         //Using Spring Data JPA
         filmRepository.deleteById(filmId);
-}
+    }
 }
