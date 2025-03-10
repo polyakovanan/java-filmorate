@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.SearchBy;
+import ru.yandex.practicum.filmorate.model.SortBy;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.*;
@@ -81,7 +83,12 @@ public class FilmController {
     }
 
     @GetMapping("/director/{directorId}")
-    public List<Film> findByDirector(@PathVariable Long directorId, @RequestParam String sortBy) {
+    public List<Film> findByDirector(@PathVariable Long directorId, @RequestParam(name = "sortBy") SortBy sortBy) {
         return filmService.findByDirector(directorId, sortBy);
+    }
+
+    @GetMapping("/search")
+    public List<Film> search(@RequestParam String query,  @RequestParam(name = "by") SearchBy[] by) {
+        return filmService.search(query, by);
     }
 }
