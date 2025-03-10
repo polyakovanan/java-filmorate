@@ -157,8 +157,8 @@ public class FilmService {
         }
     }
 
-    public List<Film> findPopular(int count, Integer genreId, Integer year) {
-        return filmStorage.findPopular(count, genreId, year);
+    public List<Film> findPopular(int count, Integer year, Long genreId) {
+        return filmStorage.findPopular(count, year, genreId);
     }
 
     public List<Film> findCommon(Long userId, Long friendId) {

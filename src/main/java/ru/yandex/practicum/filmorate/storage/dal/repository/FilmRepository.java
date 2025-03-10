@@ -14,59 +14,67 @@ import java.util.Optional;
 @Repository
 public class FilmRepository extends BaseRepository<Film> {
     private static final String BASE_FIND_QUERY = "SELECT f.*, " +
-                                                  "mpa.name as mpa_name, " +
-                                                  "string_agg(g.id, ', ') as genre_ids, " +
-                                                  "string_agg(g.name, ', ') as genre_names, " +
-                                                  "string_agg(d.id, ', ') as director_ids, " +
-                                                  "string_agg(d.name, ', ') as director_names " +
-                                                  "FROM films f " +
-                                                  "LEFT JOIN film_genres fg on fg.film_id = f.id " +
-                                                  "LEFT JOIN genres g on g.id = fg.genre_id " +
-                                                  "LEFT JOIN mpa_ratings mpa on mpa.id = f.mpa_rating " +
-                                                  "LEFT JOIN film_directors fd on fd.film_id = f.id " +
-                                                  "LEFT JOIN directors d on d.id = fd.director_id ";
+            "mpa.name as mpa_name, " +
+            "string_agg(g.id, ', ') as genre_ids, " +
+            "string_agg(g.name, ', ') as genre_names, " +
+            "string_agg(d.id, ', ') as director_ids, " +
+            "string_agg(d.name, ', ') as director_names " +
+            "FROM films f " +
+            "LEFT JOIN film_genres fg on fg.film_id = f.id " +
+            "LEFT JOIN genres g on g.id = fg.genre_id " +
+            "LEFT JOIN mpa_ratings mpa on mpa.id = f.mpa_rating " +
+            "LEFT JOIN film_directors fd on fd.film_id = f.id " +
+            "LEFT JOIN directors d on d.id = fd.director_id ";
 
     private static final String FIND_BY_ID_QUERY = BASE_FIND_QUERY +
-                                                   "WHERE f.id = ? " +
-                                                   "GROUP BY f.id";
+            "WHERE f.id = ? " +
+            "GROUP BY f.id";
 
     private static final String FIND_ALL_QUERY = BASE_FIND_QUERY +
-                                                 "GROUP BY f.id";
+            "GROUP BY f.id";
 
-    private static final String FIND_POPULAR_QUERY = BASE_FIND_QUERY +
-                                                    "LEFT JOIN likes l on l.film_id = f.id " +
-                                                    "GROUP BY f.id " +
-                                                    "ORDER BY count(l.user_id) DESC limit ?";
+    private static final String FIND_POPULAR_QUERY =
+            "SELECT f.*, mpa.name as mpa_name, string_agg(g.id, ', ') as genre_ids, string_agg(g.name, ', ') as genre_names " +
+                    "FROM films f " +
+                    "LEFT JOIN film_genres fg on fg.film_id = f.id " +
+                    "LEFT JOIN genres g on g.id = fg.genre_id " +
+                    "LEFT JOIN mpa_ratings mpa on mpa.id = f.mpa_rating " +
+                    "LEFT JOIN likes l on l.film_id = f.id " +
+                    "WHERE 1=1 " +
+                    "AND CASE WHEN ? IS NOT NULL THEN EXTRACT(YEAR FROM f.release_date) = ? ELSE TRUE END " +
+                    "AND CASE WHEN ? IS NOT NULL THEN EXISTS (SELECT 1 FROM film_genres fg2 WHERE fg2.film_id = f.id AND fg2.genre_id = ?) ELSE TRUE END " +
+                    "GROUP BY f.id " +
+                    "ORDER BY count(l.user_id) DESC LIMIT ?";
 
     private static final String FIND_COMMON_QUERY = BASE_FIND_QUERY +
-                                                    "LEFT JOIN likes l on l.film_id = f.id " +
-                                                    "WHERE f.id IN (" +
-                                                        "SELECT l1.film_id " +
-                                                        "FROM likes l1 " +
-                                                        "JOIN likes l2 on l1.film_id = l2.film_id " +
-                                                        "WHERE l1.user_id = ? AND l2.user_id = ?" +
-                                                    ")" +
-                                                    "GROUP BY f.id " +
-                                                    "ORDER BY count(l.user_id) DESC";
+            "LEFT JOIN likes l on l.film_id = f.id " +
+            "WHERE f.id IN (" +
+            "SELECT l1.film_id " +
+            "FROM likes l1 " +
+            "JOIN likes l2 on l1.film_id = l2.film_id " +
+            "WHERE l1.user_id = ? AND l2.user_id = ?" +
+            ")" +
+            "GROUP BY f.id " +
+            "ORDER BY count(l.user_id) DESC";
 
     private static final String FIND_BY_DIRECTOR_YEAR_QUERY = BASE_FIND_QUERY +
-                                                              "WHERE f.id IN (" +
-                                                              "SELECT fd1.film_id " +
-                                                              "FROM film_directors fd1 " +
-                                                              "WHERE fd1.director_id = ?" +
-                                                              ")" +
-                                                              "GROUP BY f.id " +
-                                                              "ORDER BY f.release_date";
+            "WHERE f.id IN (" +
+            "SELECT fd1.film_id " +
+            "FROM film_directors fd1 " +
+            "WHERE fd1.director_id = ?" +
+            ")" +
+            "GROUP BY f.id " +
+            "ORDER BY f.release_date";
 
     public static final String FIND_BY_DIRECTOR_LIKES_QUERY = BASE_FIND_QUERY +
-                                                              "LEFT JOIN likes l on l.film_id = f.id " +
-                                                              "WHERE f.id IN (" +
-                                                              "SELECT fd1.film_id " +
-                                                              "FROM film_directors fd1 " +
-                                                              "WHERE fd1.director_id = ?" +
-                                                              ")" +
-                                                              "GROUP BY f.id " +
-                                                              "ORDER BY count(l.user_id) DESC";
+            "LEFT JOIN likes l on l.film_id = f.id " +
+            "WHERE f.id IN (" +
+            "SELECT fd1.film_id " +
+            "FROM film_directors fd1 " +
+            "WHERE fd1.director_id = ?" +
+            ")" +
+            "GROUP BY f.id " +
+            "ORDER BY count(l.user_id) DESC";
     private static final String INSERT_QUERY = "INSERT INTO films (name, description, release_date, duration, mpa_rating) VALUES (?, ?, ?, ?, ?)";
     private static final String DELETE_QUERY = "DELETE FROM films WHERE id = ?"; // Define it HERE
     private static final String INSERT_GENRES_QUERY = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
@@ -87,8 +95,11 @@ public class FilmRepository extends BaseRepository<Film> {
         return findOne(FIND_BY_ID_QUERY, filmId);
     }
 
-    public List<Film> findPopular(int count, Integer genreId, Integer year) {
-        return findMany(FIND_POPULAR_QUERY, count, genreId, year);
+    public List<Film> findPopular(int count, Integer year, Long genreId) {
+        return findMany(FIND_POPULAR_QUERY,
+                year, year,
+                genreId, genreId,
+                count);
     }
 
     public List<Film> findCommon(Long userId, Long friendId) {
