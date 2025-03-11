@@ -174,6 +174,12 @@ public class UserService {
     }
 
     public void deleteUser(long userId) {
-        userStorage.delete(userId);
+        Optional<User> user = userStorage.getById(userId);
+        if (user.isPresent()) {
+            userStorage.delete(userId);
+            return;
+        }
+        log.error(String.format(NOT_FOUND_MESSAGE, userId));
+        throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, userId));
     }
 }

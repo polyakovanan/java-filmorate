@@ -4,10 +4,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.SearchBy;
 import ru.yandex.practicum.filmorate.model.SortBy;
 
 import java.sql.Timestamp;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,6 +70,14 @@ public class FilmRepository extends BaseRepository<Film> {
                                                               ")" +
                                                               "GROUP BY f.id " +
                                                               "ORDER BY count(l.user_id) DESC";
+    public static final String SEARCH_BY_BASE_QUERY = BASE_FIND_QUERY +
+                                                      "WHERE 1 = 0 ";
+    public static final String SEARCH_BY_TITLE_QUERY = "OR f.name LIKE ? ";
+    public static final String SEARCH_BY_DIRECTOR_QUERY = "OR f.id IN (" +
+                                                          "SELECT fd1.film_id " +
+                                                          "FROM film_directors fd1 " +
+                                                          "JOIN directors d1 ON fd1.director_id = d1.id AND d1.name LIKE ?) ";
+
     private static final String INSERT_QUERY = "INSERT INTO films (name, description, release_date, duration, mpa_rating) VALUES (?, ?, ?, ?, ?)";
     private static final String DELETE_QUERY = "DELETE FROM films WHERE id = ?"; // Define it HERE
     private static final String INSERT_GENRES_QUERY = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
@@ -142,5 +153,20 @@ public class FilmRepository extends BaseRepository<Film> {
 
     public void deleteById(long filmId) {
         jdbc.update(DELETE_QUERY, filmId);
+    }
+
+    public List<Film> search(String query, SearchBy[] searchBy) {
+       String sqlQuery = SEARCH_BY_BASE_QUERY;
+       List<Object> params = new ArrayList<>();
+       if (Arrays.asList(searchBy).contains(SearchBy.TITLE)) {
+           sqlQuery += SEARCH_BY_TITLE_QUERY;
+           params.add("%" + query + "%");
+       }
+       if (Arrays.asList(searchBy).contains(SearchBy.DIRECTOR)) {
+           sqlQuery += SEARCH_BY_DIRECTOR_QUERY;
+           params.add("%" + query + "%");
+       }
+       sqlQuery += "GROUP BY f.id ";
+       return findMany(sqlQuery, params.toArray());
     }
 }

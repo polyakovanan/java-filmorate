@@ -11,9 +11,7 @@ import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
@@ -546,7 +544,7 @@ abstract class FilmControllerTest {
 
         filmController.create(film);
 
-        List<Film> films = filmController.findByDirector(1L, "Year");
+        List<Film> films = filmController.findByDirector(1L, SortBy.YEAR);
         Assertions.assertEquals(2, films.size(), "Контроллер неправильно определил количество фильмов");
         Assertions.assertEquals("Тестовый фильм 2", films.get(0).getName(), "Контроллер неправильно определил порядок фильмов");
         Assertions.assertEquals("Тестовый фильм 1", films.get(1).getName(), "Контроллер неправильно определил порядок фильмов");
@@ -601,10 +599,156 @@ abstract class FilmControllerTest {
 
         filmController.addLike(2L, 1L);
 
-        List<Film> films = filmController.findByDirector(1L, "Likes");
+        List<Film> films = filmController.findByDirector(1L, SortBy.LIKES);
         Assertions.assertEquals(2, films.size(), "Контроллер неправильно определил количество фильмов");
         Assertions.assertEquals("Тестовый фильм 2", films.get(0).getName(), "Контроллер неправильно определил порядок фильмов");
         Assertions.assertEquals("Тестовый фильм 1", films.get(1).getName(), "Контроллер неправильно определил порядок фильмов");
 
+    }
+
+    @Test
+    void filmControllerDeletesFilm() {
+        Film film = Film.builder()
+                .name("Тестовый фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .build();
+
+        filmController.create(film);
+        Assertions.assertEquals(1, filmController.findAll().size(), "Контроллер не создал фильм");
+
+        filmController.deleteFilm(1L);
+        Assertions.assertEquals(0, filmController.findAll().size(), "Контроллер не удалил фильм");
+    }
+
+    @Test
+    void filmControllerRefusesToDeleteNotExistingFilm() {
+        Assertions.assertThrows(NotFoundException.class, () -> filmController.deleteFilm(1L));
+    }
+
+    @Test
+    void filmControllerSearchesFilmByName() {
+        Director director = Director.builder().name("Просто режиссер").build();
+        director = directorController.create(director);
+
+        Film film = Film.builder()
+                .name("Тестовый фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .directors(List.of(director))
+                .build();
+        filmController.create(film);
+
+        film = Film.builder()
+                .name("Просто фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .directors(List.of(director))
+                .build();
+        filmController.create(film);
+
+        List<Film> films = filmController.search("Тест", new SearchBy[]{SearchBy.TITLE});
+        Assertions.assertEquals(1, films.size(), "Контроллер не нашел фильм по названию");
+        Assertions.assertEquals("Тестовый фильм", films.get(0).getName(), "Контроллер неправильно нашел фильм по названию");
+    }
+
+    @Test
+    void filmControllerSearchesFilmByDirector() {
+        Director director = Director.builder().name("Просто режиссер").build();
+        director = directorController.create(director);
+        Director director2 = Director.builder().name("Тестовый режиссер").build();
+        director2 = directorController.create(director2);
+
+        Film film = Film.builder()
+                .name("Просто фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .directors(List.of(director, director2))
+                .build();
+        filmController.create(film);
+
+        film = Film.builder()
+                .name("Просто фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .directors(List.of(director))
+                .build();
+        filmController.create(film);
+
+        List<Film> films = filmController.search("Тест", new SearchBy[]{SearchBy.DIRECTOR});
+        Assertions.assertEquals(1, films.size(), "Контроллер не нашел фильм по режиссеру");
+        Assertions.assertEquals("Просто фильм", films.get(0).getName(), "Контроллер неправильно нашел фильм по режиссеру");
+    }
+
+    @Test
+    void filmControllerSearchesFilmByNameOrDirector() {
+        Director director = Director.builder().name("Просто режиссер").build();
+        director = directorController.create(director);
+        Director director2 = Director.builder().name("Тестовый режиссер").build();
+        director2 = directorController.create(director2);
+
+        Film film = Film.builder()
+                .name("Просто фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .directors(List.of(director, director2))
+                .build();
+        filmController.create(film);
+
+        film = Film.builder()
+                .name("Тестовый фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .directors(List.of(director))
+                .build();
+        filmController.create(film);
+
+        List<Film> films = filmController.search("Тест", new SearchBy[]{SearchBy.TITLE, SearchBy.DIRECTOR});
+        Assertions.assertEquals(2, films.size(), "Контроллер не нашел фильмы по названию или режиссеру");
+    }
+
+    @Test
+    void filmControllerSearchFindsNothingForNotExistingQuery() {
+        Director director = Director.builder().name("Просто режиссер").build();
+        director = directorController.create(director);
+        Director director2 = Director.builder().name("Тестовый режиссер").build();
+        director2 = directorController.create(director2);
+
+        Film film = Film.builder()
+                .name("Просто фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .directors(List.of(director, director2))
+                .build();
+        filmController.create(film);
+
+        film = Film.builder()
+                .name("Просто фильм")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .directors(List.of(director))
+                .build();
+        filmController.create(film);
+
+        List<Film> films = filmController.search("Нет такой подстроки", new SearchBy[]{SearchBy.TITLE, SearchBy.DIRECTOR});
+        Assertions.assertEquals(0, films.size(), "Контроллер не нашел лишние фильмы по режиссеру или названию");
     }
 }
