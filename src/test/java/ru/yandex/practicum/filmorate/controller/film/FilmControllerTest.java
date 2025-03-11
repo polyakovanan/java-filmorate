@@ -11,9 +11,7 @@ import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
@@ -438,6 +436,77 @@ abstract class FilmControllerTest {
         Assertions.assertEquals("Тестовый фильм 2", films.get(0).getName(), "Контроллер неправильно определил порядок популярных фильмов");
         Assertions.assertEquals("Тестовый фильм 1", films.get(1).getName(), "Контроллер неправильно определил порядок популярных фильмов");
         Assertions.assertEquals("Тестовый фильм 3", films.get(2).getName(), "Контроллер неправильно определил порядок популярных фильмов");
+    }
+
+    @Test
+    void filmControllerFindsPopularFilmsByGenreAndYear() {
+        Film film = Film.builder()
+                .name("Тестовый фильм 1")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(1999, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(2).get()))
+                .build();
+        filmController.create(film);
+
+        film = Film.builder()
+                .name("Тестовый фильм 2")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(1).get()))
+                .build();
+        filmController.create(film);
+
+        film = Film.builder()
+                .name("Тестовый фильм 3")
+                .description("Тестовое описание фильма")
+                .releaseDate(LocalDate.of(2000, 1, 1))
+                .duration(90)
+                .mpa(mpaRatingStorage.getById(1).get())
+                .genres(List.of(genreStorage.getById(2).get()))
+                .build();
+        filmController.create(film);
+
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь 1")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
+        userController.create(user);
+
+        user = User.builder()
+                .login("test2")
+                .name("Тестовый пользователь 2")
+                .email("test2@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
+        userController.create(user);
+
+        filmController.addLike(2L, 1L);
+        filmController.addLike(2L, 2L);
+        filmController.addLike(1L, 1L);
+
+        List<Film> films = filmController.findPopular(null, null, 2L);
+
+        Assertions.assertEquals(2, films.size(), "Контроллер неправильно определил количество популярных фильмов");
+        Assertions.assertEquals("Тестовый фильм 1", films.get(0).getName(), "Контроллер неправильно определил порядок популярных фильмов");
+        Assertions.assertEquals("Тестовый фильм 3", films.get(1).getName(), "Контроллер неправильно определил порядок популярных фильмов");
+
+        films = filmController.findPopular(null, 2000, null);
+
+        Assertions.assertEquals(2, films.size(), "Контроллер неправильно определил количество популярных фильмов");
+        Assertions.assertEquals("Тестовый фильм 2", films.get(0).getName(), "Контроллер неправильно определил порядок популярных фильмов");
+        Assertions.assertEquals("Тестовый фильм 3", films.get(1).getName(), "Контроллер неправильно определил порядок популярных фильмов");
+
+        films = filmController.findPopular(null, 2000, 2L);
+
+        Assertions.assertEquals(1, films.size(), "Контроллер неправильно определил количество популярных фильмов");
+        Assertions.assertEquals("Тестовый фильм 3", films.get(0).getName(), "Контроллер неправильно определил порядок популярных фильмов");
+
     }
 
     @Test

@@ -32,7 +32,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> findPopular(int count, Integer year, Long genreId) {
+    public List<Film> findPopular(Integer count, Integer year, Long genreId) {
         Map<Long, Long> likedFilms = new HashMap<>();
         films.values().stream()
                 .filter(film -> year == null || film.getReleaseDate().getYear() == year)
@@ -41,13 +41,12 @@ public class InMemoryFilmStorage implements FilmStorage {
                                 film.getGenres().stream().anyMatch(genre -> genre.getId().equals(genreId))))
                 .forEach(film -> likedFilms.put(film.getId(), 0L));
 
-        likedFilms.putAll(likeStorage.findAll().stream()
-                .collect(Collectors.groupingBy(Like::getFilmId, Collectors.counting())));
+       likedFilms.forEach((key, value) -> likedFilms.put(key, likeStorage.findCountByFilmId(key)));
 
         return likedFilms.entrySet()
                 .stream()
                 .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
-                .limit(count)
+                .limit(count == null ? likedFilms.size() : count)
                 .map(Map.Entry::getKey)
                 .map(this::getById)
                 .filter(Optional::isPresent)
