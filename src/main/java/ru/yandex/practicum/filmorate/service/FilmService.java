@@ -176,14 +176,26 @@ public class FilmService {
     }
 
     public void deleteFilm(long filmId) {
-        filmStorage.delete(filmId); // Вызов delete у filmStorage
+        Optional<Film> film = filmStorage.getById(filmId);
+        if (film.isPresent()) {
+            filmStorage.delete(filmId);
+            return;
+        }
+        log.error(String.format(NOT_FOUND_MESSAGE, filmId));
+        throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, filmId));
     }
 
-    public List<Film> findByDirector(Long directorId, String sortBy) {
-        if (Arrays.stream(SortBy.values()).noneMatch(s -> s.name().equalsIgnoreCase(sortBy))) {
-            throw new ConditionsNotMetException("Неверное значение сортировки, доступны только " + Arrays.toString(SortBy.values()));
+    public List<Film> findByDirector(Long directorId, SortBy sortBy) {
+        Optional<Director> director = directorStorage.getById(directorId);
+        if (director.isPresent()) {
+            return filmStorage.getByDirector(directorId, sortBy);
         }
-        return filmStorage.getByDirector(directorId, SortBy.valueOf(sortBy.toUpperCase()));
+        log.error(String.format("Режиссер с id = %s не найден", directorId));
+        throw new NotFoundException(String.format("Режиссер с id = %s не найден", directorId));
+    }
+
+    public List<Film> search(String query, SearchBy[] by) {
+        return filmStorage.search(query, by);
     }
 }
 

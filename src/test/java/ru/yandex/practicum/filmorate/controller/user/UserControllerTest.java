@@ -576,4 +576,25 @@ abstract class UserControllerTest {
         Assertions.assertEquals(EventOperation.ADD, feed.get(0).getOperation(), "Контроллер не нашел событие о добавлении друга");
 
     }
+
+    @Test
+    void userControllerDeletesUser() {
+        User user = User.builder()
+                .login("test")
+                .name("Тестовый пользователь")
+                .email("test@mail.com")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
+        userController.create(user);
+
+        Assertions.assertEquals(1, userController.findAll().size(), "Контроллер не создал пользователя");
+
+        userController.deleteUser(1L);
+        Assertions.assertEquals(0, userController.findAll().size(), "Контроллер не удалил пользователя");
+    }
+
+    @Test
+    void userControllerRefusesToDeleteNotExistingUser() {
+        Assertions.assertThrows(NotFoundException.class, () -> userController.deleteUser(1L));
+    }
 }

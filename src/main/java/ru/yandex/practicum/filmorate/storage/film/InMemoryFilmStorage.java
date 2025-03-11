@@ -98,6 +98,16 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> search(String query, SearchBy[] searchBy) {
+        return films.values().stream()
+                .filter(film -> Arrays.stream(searchBy).toList().contains(SearchBy.TITLE)
+                        && film.getName().toLowerCase().contains(query.toLowerCase())
+                || Arrays.stream(searchBy).toList().contains(SearchBy.DIRECTOR)
+                        && film.getDirectors().stream().anyMatch(director -> director.getName().toLowerCase().contains(query.toLowerCase())))
+                .toList();
+    }
+
+    @Override
     public Film create(Film film) {
         film.setId(getNextId());
         addRefNames(film);
