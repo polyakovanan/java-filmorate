@@ -1,60 +1,126 @@
 // Use DBML to define your database structure
 // Docs: https://dbml.dbdiagram.io/docs
-
-Table films {
-  id bigint [primary key]
-  name varchar(100)
-  description varchar(255)
-  release_date date
-  duration integer
-  mpa_rating bigint
+Table "users" {
+  "id" BIGINT [pk]
+  "email" VARCHAR(255) [unique, not null]
+  "login" VARCHAR(255) [unique, not null]
+  "name" VARCHAR(255) [not null]
+  "birthday" DATE [not null]
 }
 
-Table users {
-  id bigint [primary key]
-  email varchar(255)
-  login varchar(50)
-  name varchar(100)
-  birthday date
+Table "mpa_ratings" {
+  "id" BIGINT [pk]
+  "name" VARCHAR(255) [not null]
 }
 
-Table likes {
-  user_id bigint [primary key]
-  film_id bigint [primary key]
+Table "films" {
+  "id" BIGINT [pk]
+  "name" VARCHAR(255) [not null]
+  "description" VARCHAR(200)
+  "release_date" DATE
+  "duration" INTEGER
+  "mpa_rating" BIGINT
 }
 
-Table friendships {
-  user_id bigint [primary key]
-  friend_id bigint [primary key]
-  is_accepted bool
+Table "genres" {
+  "id" BIGINT [pk]
+  "name" VARCHAR(255) [not null]
 }
 
-Table genres {
-  id bigint [primary key]
-  name varchar(50)
+Table "film_genres" {
+  "film_id" BIGINT
+  "genre_id" BIGINT
+
+  Indexes {
+    (film_id, genre_id) [pk]
+  }
 }
 
-Table film_genres {
-  film_id bigint [primary key]
-  genre_id bigint [primary key]
+Table "friendships" {
+  "user_id" BIGINT
+  "friend_id" BIGINT
+  "is_accepted" BOOLEAN
+
+  Indexes {
+    (user_id, friend_id) [pk]
+  }
 }
 
-Table mpa_ratings {
-  id bigint [primary key]
-  name varchar(50)
+Table "likes" {
+  "user_id" BIGINT
+  "film_id" BIGINT
+
+  Indexes {
+    (user_id, film_id) [pk]
+  }
 }
 
+Table "reviews" {
+  "review_id" BIGINT [pk]
+  "content" VARCHAR(255) [not null]
+  "is_positive" BOOLEAN [not null]
+  "user_id" BIGINT [not null]
+  "film_id" BIGINT [not null]
+  "useful" INT [default: 0]
+}
 
-Ref: likes.user_id > users.id // many-to-one
+Table "review_reactions" {
+  "review_id" BIGINT [not null]
+  "user_id" BIGINT [not null]
+  "is_positive" BOOLEAN [not null]
 
-Ref: likes.film_id > films.id
+  Indexes {
+    (review_id, user_id) [pk]
+  }
+}
 
-Ref: friendships.user_id > users.id
+Table "feed" {
+  "id" BIGINT [pk]
+  "user_id" BIGINT [not null]
+  "entity_id" BIGINT [not null]
+  "event_time" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "event_type" VARCHAR(6) [not null]
+  "event_operation" VARCHAR(6) [not null]
+}
 
-Ref: friendships.friend_id > users.id
+Table "directors" {
+  "id" BIGINT [pk]
+  "name" VARCHAR(255) [not null]
+}
 
-Ref: film_genres.genre_id > genres.id
+Table "film_directors" {
+  "film_id" BIGINT
+  "director_id" BIGINT
 
-Ref: film_genres.film_id > films.id
+  Indexes {
+    (film_id, director_id) [pk]
+  }
+}
 
-Ref: mpa_ratings.id < films.mpa_rating
+Ref:"mpa_ratings"."id" < "films"."mpa_rating"
+
+Ref:"films"."id" < "film_genres"."film_id" [delete: cascade]
+
+Ref:"genres"."id" < "film_genres"."genre_id" [delete: cascade]
+
+Ref:"users"."id" < "friendships"."user_id" [delete: cascade]
+
+Ref:"users"."id" < "friendships"."friend_id" [delete: cascade]
+
+Ref:"users"."id" < "likes"."user_id" [delete: cascade]
+
+Ref:"films"."id" < "likes"."film_id" [delete: cascade]
+
+Ref "fk_reviews_user":"users"."id" < "reviews"."user_id"
+
+Ref "fk_reviews_film":"films"."id" < "reviews"."film_id"
+
+Ref "fk_review_reactions_review":"reviews"."review_id" < "review_reactions"."review_id" [delete: cascade]
+
+Ref "fk_review_reactions_user":"users"."id" < "review_reactions"."user_id" [delete: cascade]
+
+Ref "fk_feed_user":"users"."id" < "feed"."user_id" [delete: cascade]
+
+Ref:"films"."id" < "film_directors"."film_id" [delete: cascade]
+
+Ref:"directors"."id" < "film_directors"."director_id" [delete: cascade]
