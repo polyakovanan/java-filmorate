@@ -28,8 +28,8 @@ public class DbFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopular(int count) {
-        return filmRepository.findPopular(count);
+    public List<Film> findPopular(Integer count, Integer year, Long genreId) {
+        return filmRepository.findPopular(count, year, genreId);
     }
 
     @Override
@@ -66,5 +66,5 @@ public class DbFilmStorage implements FilmStorage {
     public void delete(long filmId) {
         //Using Spring Data JPA
         filmRepository.deleteById(filmId);
-}
+    }
 }

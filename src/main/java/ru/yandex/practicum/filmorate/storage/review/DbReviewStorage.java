@@ -33,7 +33,11 @@ public class DbReviewStorage implements ReviewStorage {
     @Override
     public Review update(Review review) {
         Optional<Review> existingReview = reviewRepository.findById(review.getReviewId());
-        existingReview.ifPresent(value -> review.setUseful(value.getUseful()));
+        existingReview.ifPresent(value -> {
+                                           review.setUseful(value.getUseful());
+                                           review.setUserId(value.getUserId());
+                                           review.setFilmId(value.getFilmId());
+                                          });
         return reviewRepository.update(review);
     }
 

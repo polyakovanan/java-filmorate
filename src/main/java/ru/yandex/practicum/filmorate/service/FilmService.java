@@ -134,7 +134,11 @@ public class FilmService {
             }
         }
 
-        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+        if (film.getGenres() == null) {
+            film.setGenres(new ArrayList<>());
+        }
+
+        if (!film.getGenres().isEmpty()) {
             film.setGenres(film.getGenres().stream().distinct().toList());
             List<Genre> absentGenres = film.getGenres().stream()
                     .filter(g -> genreStorage.getById(g.getId()).isEmpty())
@@ -145,7 +149,11 @@ public class FilmService {
             }
         }
 
-        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+        if (film.getDirectors() == null) {
+            film.setDirectors(new ArrayList<>());
+        }
+
+        if (!film.getDirectors().isEmpty()) {
             film.setDirectors(film.getDirectors().stream().distinct().toList());
             List<Director> absentDirectors = film.getDirectors().stream()
                     .filter(d -> directorStorage.getById(d.getId()).isEmpty())
@@ -157,8 +165,8 @@ public class FilmService {
         }
     }
 
-    public List<Film> findPopular(int count) {
-        return filmStorage.getPopular(count);
+    public List<Film> findPopular(Integer count, Integer year, Long genreId) {
+        return filmStorage.findPopular(count, year, genreId);
     }
 
     public List<Film> findCommon(Long userId, Long friendId) {

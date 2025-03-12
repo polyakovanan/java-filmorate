@@ -37,9 +37,12 @@ public class FilmRepository extends BaseRepository<Film> {
                                                  "GROUP BY f.id";
 
     private static final String FIND_POPULAR_QUERY = BASE_FIND_QUERY +
-                                                    "LEFT JOIN likes l on l.film_id = f.id " +
-                                                    "GROUP BY f.id " +
-                                                    "ORDER BY count(l.user_id) DESC limit ?";
+                                                "LEFT JOIN likes l on l.film_id = f.id " +
+                                                "WHERE 1=1 " +
+                                                "AND CASE WHEN ? IS NOT NULL THEN EXTRACT(YEAR FROM f.release_date) = ? ELSE TRUE END " +
+                                                "AND CASE WHEN ? IS NOT NULL THEN f.id in (SELECT fg2.film_id FROM film_genres fg2 WHERE fg2.genre_id = ?) ELSE TRUE END " +
+                                                "GROUP BY f.id " +
+                                                "ORDER BY count(l.user_id) DESC ";
 
     private static final String FIND_COMMON_QUERY = BASE_FIND_QUERY +
                                                     "LEFT JOIN likes l on l.film_id = f.id " +
@@ -71,12 +74,13 @@ public class FilmRepository extends BaseRepository<Film> {
                                                               "GROUP BY f.id " +
                                                               "ORDER BY count(l.user_id) DESC";
     public static final String SEARCH_BY_BASE_QUERY = BASE_FIND_QUERY +
+                                                      "LEFT JOIN likes l on l.film_id = f.id " +
                                                       "WHERE 1 = 0 ";
-    public static final String SEARCH_BY_TITLE_QUERY = "OR f.name LIKE ? ";
+    public static final String SEARCH_BY_TITLE_QUERY = "OR LOWER(f.name) LIKE LOWER(?) ";
     public static final String SEARCH_BY_DIRECTOR_QUERY = "OR f.id IN (" +
                                                           "SELECT fd1.film_id " +
                                                           "FROM film_directors fd1 " +
-                                                          "JOIN directors d1 ON fd1.director_id = d1.id AND d1.name LIKE ?) ";
+                                                          "JOIN directors d1 ON fd1.director_id = d1.id AND LOWER(d1.name) LIKE LOWER(?)) ";
 
     private static final String INSERT_QUERY = "INSERT INTO films (name, description, release_date, duration, mpa_rating) VALUES (?, ?, ?, ?, ?)";
     private static final String DELETE_QUERY = "DELETE FROM films WHERE id = ?"; // Define it HERE
@@ -98,8 +102,16 @@ public class FilmRepository extends BaseRepository<Film> {
         return findOne(FIND_BY_ID_QUERY, filmId);
     }
 
-    public List<Film> findPopular(int count) {
-        return findMany(FIND_POPULAR_QUERY, count);
+    public List<Film> findPopular(Integer count, Integer year, Long genreId) {
+        if (count == null) {
+            return findMany(FIND_POPULAR_QUERY,
+                    year, year,
+                    genreId, genreId);
+        }
+        return findMany(FIND_POPULAR_QUERY + " LIMIT ?",
+                year, year,
+                genreId, genreId,
+                count);
     }
 
     public List<Film> findCommon(Long userId, Long friendId) {
@@ -166,7 +178,7 @@ public class FilmRepository extends BaseRepository<Film> {
            sqlQuery += SEARCH_BY_DIRECTOR_QUERY;
            params.add("%" + query + "%");
        }
-       sqlQuery += "GROUP BY f.id ";
+       sqlQuery += "GROUP BY f.id ORDER BY count(l.user_id) DESC ";
        return findMany(sqlQuery, params.toArray());
     }
 }
