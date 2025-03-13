@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MPARating {
-    Long id;
-    String name;
+    private Long id;
+    private String name;
 
 }

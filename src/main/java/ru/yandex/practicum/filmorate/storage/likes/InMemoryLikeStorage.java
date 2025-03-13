@@ -14,6 +14,18 @@ public class InMemoryLikeStorage implements LikeStorage {
         return new ArrayList<>(likes);
     }
 
+    @Override
+    public List<Like> findByFilmIds(List<Long> filmIds) {
+        return likes.stream()
+                .filter(like -> filmIds.contains(like.getFilmId()))
+                .toList();
+    }
+
+    @Override
+    public List<Like> findCommon(long userId, long friendId) {
+        return likes.stream().filter(like -> like.getUserId() == userId || like.getUserId() == friendId).toList();
+    }
+
     public Long findCountByFilmId(long filmId) {
         return likes.stream()
                 .filter(f -> f.getFilmId() == filmId)

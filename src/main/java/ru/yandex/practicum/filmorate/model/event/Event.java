@@ -6,11 +6,11 @@ import lombok.Data;
 @Data
 @Builder
 public class Event {
-    long eventId;
-    long userId;
-    long entityId;
-    long timestamp;
-    EventType eventType;
-    EventOperation operation;
+    private long eventId;
+    private long userId;
+    private long entityId;
+    private long timestamp;
+    private EventType eventType;
+    private EventOperation operation;
 
 }

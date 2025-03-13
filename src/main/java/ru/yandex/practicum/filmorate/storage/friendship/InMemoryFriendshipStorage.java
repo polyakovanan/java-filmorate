@@ -15,6 +15,13 @@ public class InMemoryFriendshipStorage implements FriendshipStorage {
     }
 
     @Override
+    public List<Friendship> findByUserId(long userId) {
+        return friendships.stream()
+                .filter(f -> f.getUserId() == userId)
+                .toList();
+    }
+
+    @Override
     public void create(long userId, long friendId) {
         Optional<Friendship> friendshipOp = friendships.stream()
                 .filter(f -> f.getUserId() == userId && f.getFriendId() == friendId)

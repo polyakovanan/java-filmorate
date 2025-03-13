@@ -20,6 +20,11 @@ public class DbFriendshipStorage implements FriendshipStorage {
     }
 
     @Override
+    public List<Friendship> findByUserId(long userId) {
+        return friendshipRepository.findByUserId(userId);
+    }
+
+    @Override
     public void create(long userId, long friendId) {
         friendshipRepository.create(userId, friendId);
     }

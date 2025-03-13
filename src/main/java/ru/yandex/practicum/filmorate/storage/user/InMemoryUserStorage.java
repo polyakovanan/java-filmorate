@@ -27,6 +27,20 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
+    public Optional<User> getByEmail(String email) {
+        return users.values().stream()
+                .filter(user -> user.getEmail().equals(email))
+                .findFirst();
+    }
+
+    @Override
+    public Optional<User> getByLogin(String login) {
+        return users.values().stream()
+                .filter(user -> user.getLogin().equals(login))
+                .findFirst();
+    }
+
+    @Override
     public User create(User user) {
         user.setId(getNextId());
         users.put(user.getId(), user);
@@ -42,9 +56,8 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public List<User> findFriendsById(long id) {
         return friendshipStorage
-                .findAll()
+                .findByUserId(id)
                 .stream()
-                .filter(friendship -> friendship.getUserId() == id)
                 .map(friendship -> getById(friendship.getFriendId()))
                 .filter(Optional::isPresent)
                 .map(Optional::get)

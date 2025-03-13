@@ -42,11 +42,7 @@ public class FilmService {
 
     public Film findById(Long id) {
         Optional<Film> film = filmStorage.getById(id);
-        if (film.isPresent()) {
-            return film.get();
-        }
-        log.error(String.format(NOT_FOUND_MESSAGE, id));
-        throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
+        return film.orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, id)));
     }
 
     public Film create(Film film) {
@@ -64,59 +60,37 @@ public class FilmService {
         }
 
         Optional<Film> filmOptional = filmStorage.getById(film.getId());
-
-        if (filmOptional.isPresent()) {
-            validate(film);
-            Film currentFilm = filmStorage.update(film);
-            log.info("Фильм успешно обновлен");
-            return currentFilm;
-        } else {
-            log.error(String.format(NOT_FOUND_MESSAGE, film.getId()));
-            throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, film.getId()));
-        }
+        filmOptional.orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, film.getId())));
+        validate(film);
+        Film currentFilm = filmStorage.update(film);
+        log.info("Фильм успешно обновлен");
+        return currentFilm;
     }
 
     public void addLike(Long id, Long userId) {
         Optional<Film> film = filmStorage.getById(id);
-        if (film.isPresent()) {
-            Optional<User> user = userStorage.getById(userId);
-            if (user.isPresent()) {
-                likeStorage.create(userId, id);
-                log.info("Пользователь с id = {} поставил лайк фильму с id = {}", userId, id);
-            } else {
-                log.error("Пользователь с id = {} не найден", userId);
-                throw new NotFoundException("Пользователь с id = " + userId + " не найден");
-            }
-        } else {
-            log.error(String.format(NOT_FOUND_MESSAGE, id));
-            throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
-        }
+        film.orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, id)));
+        Optional<User> user = userStorage.getById(userId);
+        user.orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
+        likeStorage.create(userId, id);
+        log.info("Пользователь с id = {} поставил лайк фильму с id = {}", userId, id);
         eventStorage.create(userId, id, EventType.LIKE, EventOperation.ADD);
     }
 
     public void removeLike(Long id, Long userId) {
         Optional<Film> film = filmStorage.getById(id);
-        if (film.isPresent()) {
-            Optional<User> user = userStorage.getById(userId);
-            if (user.isPresent()) {
-                likeStorage.remove(userId, id);
-                log.info("Пользователь с id = {} убрал лайк с фильма с id = {}", userId, id);
-            } else {
-                log.error("Пользователь с id = {} не найден", userId);
-                throw new NotFoundException("Пользователь с id = " + userId + " не найден");
-            }
-        } else {
-            log.error(String.format(NOT_FOUND_MESSAGE, id));
-            throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
-        }
+        film.orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, id)));
+        Optional<User> user = userStorage.getById(userId);
+        user.orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
+        likeStorage.remove(userId, id);
+        log.info("Пользователь с id = {} убрал лайк с фильма с id = {}", userId, id);
         eventStorage.create(userId, id, EventType.LIKE, EventOperation.REMOVE);
     }
 
     private void validate(Film film) throws DuplicatedDataException, ValidationException {
-        List<Film> films = filmStorage.getAll();
-        if (films.stream()
-                .anyMatch(f -> f.equals(film))) {
-            log.error("Фильм с названием {} и датой релиза {} уже существует", film.getName(), film.getReleaseDate());
+        Optional<Film> filmOptional = filmStorage.findDuplicate(film);
+        if (filmOptional.isPresent() && !filmOptional.get().getId().equals(film.getId())) {
+            log.error("Фильм с таким названием и датой релиза уже существует");
             throw new DuplicatedDataException("Фильм с таким названием и датой релиза уже существует");
         }
 
@@ -171,35 +145,22 @@ public class FilmService {
 
     public List<Film> findCommon(Long userId, Long friendId) {
         Optional<User> user = userStorage.getById(userId);
-        if (user.isEmpty()) {
-            log.error("Пользователь с id = {} не найден", userId);
-            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
-        }
+        user.orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
         Optional<User> friend = userStorage.getById(friendId);
-        if (friend.isEmpty()) {
-            log.error("Пользователь с id = {} не найден", friendId);
-        }
-
+        friend.orElseThrow(() -> new NotFoundException("Пользователь с id = " + friendId + " не найден"));
         return filmStorage.getCommon(userId, friendId);
     }
 
     public void deleteFilm(long filmId) {
         Optional<Film> film = filmStorage.getById(filmId);
-        if (film.isPresent()) {
-            filmStorage.delete(filmId);
-            return;
-        }
-        log.error(String.format(NOT_FOUND_MESSAGE, filmId));
-        throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, filmId));
+        film.orElseThrow(() -> new NotFoundException("Фильм с id = " + filmId + " не найден"));
+        filmStorage.delete(filmId);
     }
 
     public List<Film> findByDirector(Long directorId, SortBy sortBy) {
         Optional<Director> director = directorStorage.getById(directorId);
-        if (director.isPresent()) {
-            return filmStorage.getByDirector(directorId, sortBy);
-        }
-        log.error(String.format("Режиссер с id = %s не найден", directorId));
-        throw new NotFoundException(String.format("Режиссер с id = %s не найден", directorId));
+        director.orElseThrow(() -> new NotFoundException("Режиссер с id = " + directorId + " не найден"));
+        return filmStorage.getByDirector(directorId, sortBy);
     }
 
     public List<Film> search(String query, SearchBy[] by) {

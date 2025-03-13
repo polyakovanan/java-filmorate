@@ -4,6 +4,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.SearchBy;
 import ru.yandex.practicum.filmorate.model.SortBy;
 
@@ -32,6 +33,10 @@ public class FilmRepository extends BaseRepository<Film> {
     private static final String FIND_BY_ID_QUERY = BASE_FIND_QUERY +
                                                    "WHERE f.id = ? " +
                                                    "GROUP BY f.id";
+    private static final String FIND_DUPLICATE_QUERY = BASE_FIND_QUERY +
+                                                  "WHERE f.name = ? " +
+                                                  "AND f.release_date = ? " +
+                                                  "AND f.mpa_rating = ? ";
 
     private static final String FIND_ALL_QUERY = BASE_FIND_QUERY +
                                                  "GROUP BY f.id";
@@ -100,6 +105,22 @@ public class FilmRepository extends BaseRepository<Film> {
 
     public Optional<Film> findById(Long filmId) {
         return findOne(FIND_BY_ID_QUERY, filmId);
+    }
+
+    public Optional<Film> findDuplicate(Film film) {
+        StringBuilder sqlQuery = new StringBuilder(FIND_DUPLICATE_QUERY);
+        List<Object> params = new ArrayList<>();
+        params.add(film.getName());
+        params.add(film.getReleaseDate());
+        params.add(film.getMpa().getId());
+        if (film.getGenres() != null) {
+            for (Genre genre : film.getGenres()) {
+                sqlQuery.append("AND EXISTS (SELECT 1 FROM film_genres fg1 WHERE fg1.genre_id = ? AND fg1.film_id = f.id) ");
+                params.add(genre.getId());
+            }
+        }
+        sqlQuery.append("GROUP BY f.id");
+        return findOne(sqlQuery.toString(), params.toArray());
     }
 
     public List<Film> findPopular(Integer count, Integer year, Long genreId) {

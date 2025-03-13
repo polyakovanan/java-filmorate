@@ -32,6 +32,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
+    public Optional<Film> findDuplicate(Film film) {
+        return films.values().stream().filter(value -> value.equals(film)).findFirst();
+    }
+
+    @Override
     public List<Film> findPopular(Integer count, Integer year, Long genreId) {
         Map<Long, Long> likedFilms = new HashMap<>();
         films.values().stream()
@@ -56,9 +61,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommon(long userId, long friendId) {
-        List<Long> commonFilms = likeStorage.findAll()
-                .stream()
-                .filter(like -> like.getUserId() == userId || like.getUserId() == friendId)
+        List<Long> commonFilms = likeStorage.findCommon(userId, friendId).stream()
                 .map(Like::getFilmId)
                 .toList();
 
@@ -68,7 +71,7 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .filter(f -> commonFilms.contains(f.getId()))
                 .forEach(film -> likedFilms.put(film.getId(), 0L));
 
-        likedFilms.putAll(likeStorage.findAll().stream().filter(like -> commonFilms.contains(like.getFilmId()))
+        likedFilms.putAll(likeStorage.findByFilmIds(commonFilms).stream()
                 .collect(Collectors.groupingBy(Like::getFilmId, Collectors.counting())));
 
         return likedFilms.entrySet()

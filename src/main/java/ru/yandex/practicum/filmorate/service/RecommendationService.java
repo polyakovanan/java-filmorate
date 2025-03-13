@@ -27,10 +27,7 @@ public class RecommendationService {
     private final LikeStorage likeStorage;
 
     public List<Film> getRecommendations(Long userId) {
-        if (userStorage.getById(userId).isEmpty()) {
-            log.error("Пользователь с id = {} не найден", userId);
-            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
-        }
+        userStorage.getById(userId).orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
 
         List<Like> allLikes = likeStorage.findAll();
         Map<Long, Integer> similarUsers = findSimilarUsers(userId, allLikes);

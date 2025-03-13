@@ -33,11 +33,7 @@ public class ReviewService {
 
     public Review findById(Long id) {
         Optional<Review> review = reviewStorage.getById(id);
-        if (review.isPresent()) {
-            return review.get();
-        }
-        log.error(String.format(NOT_FOUND_MESSAGE, id));
-        throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
+        return review.orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, id)));
     }
 
     public Review create(Review review) {
@@ -56,16 +52,12 @@ public class ReviewService {
         }
 
         Optional<Review> reviewOptional = reviewStorage.getById(review.getReviewId());
-        if (reviewOptional.isPresent()) {
-            validateReview(review);
-            Review updatedReview = reviewStorage.update(review);
-            log.info("Отзыв обновлен");
-            eventStorage.create(updatedReview.getUserId(), updatedReview.getReviewId(), EventType.REVIEW, EventOperation.UPDATE);
-            return updatedReview;
-        } else {
-            log.error(String.format(NOT_FOUND_MESSAGE, review.getReviewId()));
-            throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, review.getReviewId()));
-        }
+        reviewOptional.orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, review.getReviewId())));
+        validateReview(review);
+        Review updatedReview = reviewStorage.update(review);
+        log.info("Отзыв обновлен");
+        eventStorage.create(updatedReview.getUserId(), updatedReview.getReviewId(), EventType.REVIEW, EventOperation.UPDATE);
+        return updatedReview;
     }
 
     public void delete(Long id) {
