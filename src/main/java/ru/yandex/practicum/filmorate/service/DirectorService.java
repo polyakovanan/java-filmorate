@@ -24,11 +24,7 @@ public class DirectorService {
 
     public Director findById(Long id) {
         Optional<Director> director = directorStorage.getById(id);
-        if (director.isPresent()) {
-            return director.get();
-        }
-        log.error(String.format(NOT_FOUND_MESSAGE, id));
-        throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
+        return director.orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, id)));
     }
 
     public Director create(Director director) {
@@ -45,26 +41,18 @@ public class DirectorService {
         }
 
         Optional<Director> directorOptional = directorStorage.getById(director.getId());
+        directorOptional.orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, director.getId())));
 
-        if (directorOptional.isPresent()) {
-            Director currentDirector = directorStorage.update(director);
-            log.info("Режиссер обновлен");
-            log.debug(currentDirector.toString());
-            return currentDirector;
-        } else {
-            log.error(String.format(NOT_FOUND_MESSAGE, director.getId()));
-            throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, director.getId()));
-        }
+        Director currentDirector = directorStorage.update(director);
+        log.info("Режиссер обновлен");
+        log.debug(currentDirector.toString());
+        return currentDirector;
     }
 
     public void delete(Long id) {
         Optional<Director> director = directorStorage.getById(id);
-        if (director.isPresent()) {
-            directorStorage.delete(id);
-            return;
-        }
-        log.error(String.format(NOT_FOUND_MESSAGE, id));
-        throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
+        director.orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, id)));
+        directorStorage.delete(id);
     }
 
 }

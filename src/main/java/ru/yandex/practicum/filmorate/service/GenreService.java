@@ -23,10 +23,6 @@ public class GenreService {
 
     public Genre findById(Long id) {
         Optional<Genre> genre = genreStorage.getById(id);
-        if (genre.isPresent()) {
-            return genre.get();
-        }
-        log.error(String.format(NOT_FOUND_MESSAGE, id));
-        throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
+        return genre.orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, id)));
     }
 }

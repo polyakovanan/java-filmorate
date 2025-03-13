@@ -606,7 +606,7 @@ abstract class FilmControllerTest {
         filmController.create(film);
 
         film = Film.builder()
-                .name("Тестовый фильм 2")
+                .name("Тестовый фильм 3")
                 .description("Тестовое описание фильма")
                 .releaseDate(LocalDate.of(2000, 1, 1))
                 .duration(90)
@@ -748,7 +748,7 @@ abstract class FilmControllerTest {
         filmController.create(film);
 
         film = Film.builder()
-                .name("Просто фильм")
+                .name("Просто фильм 2")
                 .description("Тестовое описание фильма")
                 .releaseDate(LocalDate.of(2000, 1, 1))
                 .duration(90)
@@ -811,7 +811,7 @@ abstract class FilmControllerTest {
         filmController.create(film);
 
         film = Film.builder()
-                .name("Просто фильм")
+                .name("Просто фильм 2")
                 .description("Тестовое описание фильма")
                 .releaseDate(LocalDate.of(2000, 1, 1))
                 .duration(90)

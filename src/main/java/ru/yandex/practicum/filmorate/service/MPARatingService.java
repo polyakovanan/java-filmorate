@@ -23,10 +23,6 @@ public class MPARatingService {
 
     public MPARating findById(Long id) {
         Optional<MPARating> mpaRating = ratingStorage.getById(id);
-        if (mpaRating.isPresent()) {
-            return mpaRating.get();
-        }
-        log.error(String.format(NOT_FOUND_MESSAGE, id));
-        throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
+        return mpaRating.orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, id)));
     }
 }

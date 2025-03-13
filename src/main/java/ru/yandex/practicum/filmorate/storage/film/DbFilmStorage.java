@@ -28,6 +28,11 @@ public class DbFilmStorage implements FilmStorage {
     }
 
     @Override
+    public Optional<Film> findDuplicate(Film film) {
+        return filmRepository.findDuplicate(film);
+    }
+
+    @Override
     public List<Film> findPopular(Integer count, Integer year, Long genreId) {
         return filmRepository.findPopular(count, year, genreId);
     }

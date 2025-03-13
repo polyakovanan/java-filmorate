@@ -20,6 +20,16 @@ public class DbLikeStorage implements LikeStorage {
     }
 
     @Override
+    public List<Like> findByFilmIds(List<Long> filmIds) {
+        return likeRepository.findByFilmIds(filmIds);
+    }
+
+    @Override
+    public List<Like> findCommon(long userId, long friendId) {
+        return likeRepository.findCommon(userId, friendId);
+    }
+
+    @Override
     public void create(long userId, long filmId) {
         likeRepository.create(userId, filmId);
     }
