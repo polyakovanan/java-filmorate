@@ -7,16 +7,18 @@ import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.MPARating;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.event.EventOperation;
+import ru.yandex.practicum.filmorate.model.event.EventType;
+import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.likes.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.mparating.MPARatingStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.utils.DataUtils;
+import ru.yandex.practicum.filmorate.model.SortBy;
 
 import java.util.*;
 
@@ -31,6 +33,8 @@ public class FilmService {
     final MPARatingStorage mpaRatingStorage;
     final GenreStorage genreStorage;
     final LikeStorage likeStorage;
+    final EventStorage eventStorage;
+    final DirectorStorage directorStorage;
 
     public List<Film> findAll() {
         return filmStorage.getAll();
@@ -38,11 +42,7 @@ public class FilmService {
 
     public Film findById(Long id) {
         Optional<Film> film = filmStorage.getById(id);
-        if (film.isPresent()) {
-            return film.get();
-        }
-        log.error(String.format(NOT_FOUND_MESSAGE, id));
-        throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
+        return film.orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, id)));
     }
 
     public Film create(Film film) {
@@ -60,57 +60,37 @@ public class FilmService {
         }
 
         Optional<Film> filmOptional = filmStorage.getById(film.getId());
-
-        if (filmOptional.isPresent()) {
-            validate(film);
-            Film currentFilm = filmStorage.update(film);
-            log.info("Фильм успешно обновлен");
-            return currentFilm;
-        } else {
-            log.error(String.format(NOT_FOUND_MESSAGE, film.getId()));
-            throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, film.getId()));
-        }
+        filmOptional.orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, film.getId())));
+        validate(film);
+        Film currentFilm = filmStorage.update(film);
+        log.info("Фильм успешно обновлен");
+        return currentFilm;
     }
 
     public void addLike(Long id, Long userId) {
         Optional<Film> film = filmStorage.getById(id);
-        if (film.isPresent()) {
-            Optional<User> user = userStorage.getById(userId);
-            if (user.isPresent()) {
-                likeStorage.create(userId, id);
-                log.info("Пользователь с id = {} поставил лайк фильму с id = {}", userId, id);
-            } else {
-                log.error("Пользователь с id = {} не найден", userId);
-                throw new NotFoundException("Пользователь с id = " + userId + " не найден");
-            }
-        } else {
-            log.error(String.format(NOT_FOUND_MESSAGE, id));
-            throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
-        }
+        film.orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, id)));
+        Optional<User> user = userStorage.getById(userId);
+        user.orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
+        likeStorage.create(userId, id);
+        log.info("Пользователь с id = {} поставил лайк фильму с id = {}", userId, id);
+        eventStorage.create(userId, id, EventType.LIKE, EventOperation.ADD);
     }
 
     public void removeLike(Long id, Long userId) {
         Optional<Film> film = filmStorage.getById(id);
-        if (film.isPresent()) {
-            Optional<User> user = userStorage.getById(userId);
-            if (user.isPresent()) {
-                likeStorage.remove(userId, id);
-                log.info("Пользователь с id = {} убрал лайк с фильма с id = {}", userId, id);
-            } else {
-                log.error("Пользователь с id = {} не найден", userId);
-                throw new NotFoundException("Пользователь с id = " + userId + " не найден");
-            }
-        } else {
-            log.error(String.format(NOT_FOUND_MESSAGE, id));
-            throw new NotFoundException(String.format(NOT_FOUND_MESSAGE, id));
-        }
+        film.orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_MESSAGE, id)));
+        Optional<User> user = userStorage.getById(userId);
+        user.orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
+        likeStorage.remove(userId, id);
+        log.info("Пользователь с id = {} убрал лайк с фильма с id = {}", userId, id);
+        eventStorage.create(userId, id, EventType.LIKE, EventOperation.REMOVE);
     }
 
     private void validate(Film film) throws DuplicatedDataException, ValidationException {
-        List<Film> films = filmStorage.getAll();
-        if (films.stream()
-                .anyMatch(f -> f.equals(film))) {
-            log.error("Фильм с названием {} и датой релиза {} уже существует", film.getName(), film.getReleaseDate());
+        Optional<Film> filmOptional = filmStorage.findDuplicate(film);
+        if (filmOptional.isPresent() && !filmOptional.get().getId().equals(film.getId())) {
+            log.error("Фильм с таким названием и датой релиза уже существует");
             throw new DuplicatedDataException("Фильм с таким названием и датой релиза уже существует");
         }
 
@@ -128,7 +108,11 @@ public class FilmService {
             }
         }
 
-        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+        if (film.getGenres() == null) {
+            film.setGenres(new ArrayList<>());
+        }
+
+        if (!film.getGenres().isEmpty()) {
             film.setGenres(film.getGenres().stream().distinct().toList());
             List<Genre> absentGenres = film.getGenres().stream()
                     .filter(g -> genreStorage.getById(g.getId()).isEmpty())
@@ -138,9 +122,49 @@ public class FilmService {
                 throw new NotFoundException("Фильм содержит жанры, которых нет в базе c id = " + absentGenres);
             }
         }
+
+        if (film.getDirectors() == null) {
+            film.setDirectors(new ArrayList<>());
+        }
+
+        if (!film.getDirectors().isEmpty()) {
+            film.setDirectors(film.getDirectors().stream().distinct().toList());
+            List<Director> absentDirectors = film.getDirectors().stream()
+                    .filter(d -> directorStorage.getById(d.getId()).isEmpty())
+                    .toList();
+            if (!absentDirectors.isEmpty()) {
+                log.error("Фильм содержит режиссеров, которых нет в базе c id = {}", absentDirectors);
+                throw new NotFoundException("Фильм содержит режиссеров, которых нет в базе c id = " + absentDirectors);
+            }
+        }
     }
 
-    public List<Film> findPopular(int count) {
-        return filmStorage.getPopular(count);
+    public List<Film> findPopular(Integer count, Integer year, Long genreId) {
+        return filmStorage.findPopular(count, year, genreId);
+    }
+
+    public List<Film> findCommon(Long userId, Long friendId) {
+        Optional<User> user = userStorage.getById(userId);
+        user.orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
+        Optional<User> friend = userStorage.getById(friendId);
+        friend.orElseThrow(() -> new NotFoundException("Пользователь с id = " + friendId + " не найден"));
+        return filmStorage.getCommon(userId, friendId);
+    }
+
+    public void deleteFilm(long filmId) {
+        Optional<Film> film = filmStorage.getById(filmId);
+        film.orElseThrow(() -> new NotFoundException("Фильм с id = " + filmId + " не найден"));
+        filmStorage.delete(filmId);
+    }
+
+    public List<Film> findByDirector(Long directorId, SortBy sortBy) {
+        Optional<Director> director = directorStorage.getById(directorId);
+        director.orElseThrow(() -> new NotFoundException("Режиссер с id = " + directorId + " не найден"));
+        return filmStorage.getByDirector(directorId, sortBy);
+    }
+
+    public List<Film> search(String query, SearchBy[] by) {
+        return filmStorage.search(query, by);
     }
 }
+

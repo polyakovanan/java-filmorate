@@ -10,6 +10,10 @@ public interface UserStorage {
 
     Optional<User> getById(long id);
 
+    Optional<User> getByEmail(String email);
+
+    Optional<User> getByLogin(String login);
+
     User create(User user);
 
     User update(User user);
@@ -19,4 +23,6 @@ public interface UserStorage {
     List<User> findCommonFriends(long id, long otherId);
 
     void clear();
+
+    void delete(long userId);
 }

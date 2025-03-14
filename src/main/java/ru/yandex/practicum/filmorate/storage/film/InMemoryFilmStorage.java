@@ -2,13 +2,12 @@ package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Like;
-import ru.yandex.practicum.filmorate.model.MPARating;
+import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.storage.director.InMemoryDirectorStorage;
 import ru.yandex.practicum.filmorate.storage.genre.InMemoryGenreStorage;
 import ru.yandex.practicum.filmorate.storage.likes.InMemoryLikeStorage;
 import ru.yandex.practicum.filmorate.storage.mparating.InMemoryMPARatingStorage;
+import ru.yandex.practicum.filmorate.model.SortBy;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,6 +19,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     private final InMemoryLikeStorage likeStorage;
     private final InMemoryGenreStorage genreStorage;
     private final InMemoryMPARatingStorage mpaRatingStorage;
+    private final InMemoryDirectorStorage directorStorage;
 
     @Override
     public List<Film> getAll() {
@@ -32,20 +32,80 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopular(int count) {
+    public Optional<Film> findDuplicate(Film film) {
+        return films.values().stream().filter(value -> value.equals(film)).findFirst();
+    }
+
+    @Override
+    public List<Film> findPopular(Integer count, Integer year, Long genreId) {
         Map<Long, Long> likedFilms = new HashMap<>();
-        films.values().forEach(film -> likedFilms.put(film.getId(), 0L));
-        likedFilms.putAll(likeStorage.findAll().stream()
+        films.values().stream()
+                .filter(film -> year == null || film.getReleaseDate().getYear() == year)
+                .filter(film -> genreId == null ||
+                        (film.getGenres() != null &&
+                                film.getGenres().stream().anyMatch(genre -> genre.getId().equals(genreId))))
+                .forEach(film -> likedFilms.put(film.getId(), 0L));
+
+       likedFilms.forEach((key, value) -> likedFilms.put(key, likeStorage.findCountByFilmId(key)));
+
+        return likedFilms.entrySet()
+                .stream()
+                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+                .limit(count == null ? likedFilms.size() : count)
+                .map(Map.Entry::getKey)
+                .map(this::getById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
+    }
+
+    @Override
+    public List<Film> getCommon(long userId, long friendId) {
+        List<Long> commonFilms = likeStorage.findCommon(userId, friendId).stream()
+                .map(Like::getFilmId)
+                .toList();
+
+        Map<Long, Long> likedFilms = new HashMap<>();
+        films.values()
+                .stream()
+                .filter(f -> commonFilms.contains(f.getId()))
+                .forEach(film -> likedFilms.put(film.getId(), 0L));
+
+        likedFilms.putAll(likeStorage.findByFilmIds(commonFilms).stream()
                 .collect(Collectors.groupingBy(Like::getFilmId, Collectors.counting())));
 
         return likedFilms.entrySet()
                 .stream()
                 .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
-                .limit(count)
                 .map(Map.Entry::getKey)
                 .map(this::getById)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
+                .toList();
+    }
+
+    @Override
+    public List<Film> getByDirector(Long directorId, SortBy sortBy) {
+        List<Film> directorFilms = (films.values().stream()
+                .filter(film -> film.getDirectors().stream().anyMatch(director -> Objects.equals(director.getId(), directorId)))
+                .toList());
+        return switch (sortBy) {
+            case LIKES -> directorFilms.stream()
+                    .sorted(Comparator.comparingLong(film -> likeStorage.findCountByFilmId(film.getId())))
+                    .toList().reversed();
+            case YEAR -> directorFilms.stream()
+                    .sorted(Comparator.comparing(Film::getReleaseDate))
+                    .toList();
+        };
+    }
+
+    @Override
+    public List<Film> search(String query, SearchBy[] searchBy) {
+        return films.values().stream()
+                .filter(film -> Arrays.stream(searchBy).toList().contains(SearchBy.TITLE)
+                        && film.getName().toLowerCase().contains(query.toLowerCase())
+                || Arrays.stream(searchBy).toList().contains(SearchBy.DIRECTOR)
+                        && film.getDirectors().stream().anyMatch(director -> director.getName().toLowerCase().contains(query.toLowerCase())))
                 .toList();
     }
 
@@ -74,10 +134,20 @@ public class InMemoryFilmStorage implements FilmStorage {
             film.setGenres(new ArrayList<>());
         }
         film.getGenres()
-                .forEach(g -> {
-                    Optional<Genre> genre = genreStorage.getById(g.getId());
-                    genre.ifPresent(value -> g.setName(value.getName()));
+                .forEach(genre -> {
+                    Optional<Genre> genreOptional = genreStorage.getById(genre.getId());
+                    genreOptional.ifPresent(value -> genre.setName(value.getName()));
                 });
+
+        if (film.getDirectors() == null) {
+            film.setDirectors(new ArrayList<>());
+        }
+        film.getDirectors()
+                .forEach(director -> {
+                    Optional<Director> directorOptional = directorStorage.getById(director.getId());
+                    directorOptional.ifPresent(value -> director.setName(value.getName()));
+                });
+
         if (film.getMpa() != null) {
             Optional<MPARating> mpaRating = mpaRatingStorage.getById(film.getMpa().getId());
             mpaRating.ifPresent(value -> film.getMpa().setName(value.getName()));
@@ -91,5 +161,10 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .max()
                 .orElse(0);
         return ++currentMaxId;
+    }
+
+    @Override
+    public void delete(long filmId) {
+        films.remove(filmId);
     }
 }

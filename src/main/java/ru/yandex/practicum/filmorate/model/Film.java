@@ -18,18 +18,19 @@ import java.util.List;
 public class Film {
     public static final LocalDate CINEMA_BIRTH_DAY = LocalDate.of(1895, 12, 28);
 
-    Long id;
+    private Long id;
     @NotNull(message = "Не передан параметр названия")
     @NotBlank(message = "Название не может быть пустым")
-    String name;
+    private String name;
 
     @Size(max = 200, message = "Длина названия не должна превышать 200 символов")
-    String description;
-    LocalDate releaseDate;
+    private String description;
+    private LocalDate releaseDate;
 
     @Positive(message = "Длительность не может быть отрицательной")
-    Integer duration;
-    MPARating mpa;
+    private Integer duration;
+    private MPARating mpa;
 
-    List<Genre> genres;
+    private List<Genre> genres;
+    private List<Director> directors;
 }

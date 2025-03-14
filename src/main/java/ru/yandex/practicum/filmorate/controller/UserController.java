@@ -4,11 +4,24 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.event.Event;
+import ru.yandex.practicum.filmorate.service.RecommendationService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.util.*;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -16,6 +29,7 @@ import java.util.*;
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
+    private final RecommendationService recommendationService;
 
     @GetMapping
     public List<User> findAll() {
@@ -66,5 +80,23 @@ public class UserController {
     public void removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
         log.info("Запрос на удаление друга с id {} у пользователя с id = {}", friendId, id);
         userService.removeFriend(id, friendId);
+    }
+
+    @DeleteMapping("{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable long userId) {
+        userService.deleteUser(userId);
+        return ResponseEntity.noContent().build(); // 204 No Content
+    }
+
+    @GetMapping("/{id}/feed")
+    public List<Event> findFeed(@PathVariable Long id) {
+        log.info("Запрос на получение событий пользователя с id = {}", id);
+        return userService.findFeed(id);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public List<Film> getRecommendations(@PathVariable Long id) {
+        log.info("Запрос на получение рекомендаций для пользователя с id = {}", id);
+        return recommendationService.getRecommendations(id);
     }
 }

@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(exclude = "isAccepted")
 @Builder
 public class Friendship {
-    Long userId;
-    Long friendId;
-    boolean isAccepted;
+    private Long userId;
+    private Long friendId;
+    private boolean isAccepted;
 }

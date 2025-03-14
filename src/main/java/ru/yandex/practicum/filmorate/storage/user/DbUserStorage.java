@@ -26,6 +26,16 @@ public class DbUserStorage implements UserStorage {
     }
 
     @Override
+    public Optional<User> getByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public Optional<User> getByLogin(String login) {
+        return userRepository.findByLogin(login);
+    }
+
+    @Override
     public User create(User user) {
         return userRepository.create(user);
     }
@@ -48,5 +58,10 @@ public class DbUserStorage implements UserStorage {
     @Override
     public void clear() {
         throw new UnsupportedOperationException("Очистка таблицы БД не поддерживается");
+    }
+
+    @Override
+    public void delete(long userId) {
+        userRepository.deleteById(userId);
     }
 }

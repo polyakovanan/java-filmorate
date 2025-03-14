@@ -10,6 +10,7 @@ import java.util.List;
 @Repository
 public class FriendshipRepository extends BaseRepository<Friendship> {
     private static final String FIND_ALL_QUERY = "SELECT * FROM friendships";
+    private static final String FIND_BY_USER_ID = "SELECT * FROM friendships WHERE user_id = ?";
     private static final String INSERT_QUERY = "INSERT INTO friendships (user_id, friend_id, is_accepted) " +
                                                 "SELECT ?, ?, (SELECT count(*) FROM friendships WHERE user_id = ? AND friend_id = ?) FROM dual";
     private static final String ACCEPT_QUERY = "UPDATE friendships SET is_accepted = 1 WHERE user_id = ? AND friend_id = ?";
@@ -38,4 +39,7 @@ public class FriendshipRepository extends BaseRepository<Friendship> {
         update(REMOVE_ACCEPT_QUERY, friendId, userId);
     }
 
+    public List<Friendship> findByUserId(long userId) {
+        return findMany(FIND_BY_USER_ID, userId);
+    }
 }
